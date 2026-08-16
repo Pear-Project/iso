@@ -1,0 +1,182 @@
+linux-image-amd64
+systemd-sysv
+udev
+apt
+iproute2
+netbase
+procps
+isc-dhcp-client
+bash-completion
+sudo
+passwd
+initramfs-tools
+libpam-modules
+util-linux
+dbus
+# GNOME Base
+gnome-shell
+gnome-session
+gnome-session-xsession
+gnome-control-center
+# SDDM Base
+sddm
+qt6-image-formats-plugins
+qml6-module-qtquick-layouts
+qml6-module-qtquick-templates
+qml6-module-qtquick-controls
+qml6-module-qtquick-window
+qml6-module-qt5compat-graphicaleffects
+qml6-module-org-kde-breeze
+qml6-module-org-kde-kirigami
+qml6-module-org-kde-kquickcontrolsaddons
+qml6-module-org-kde-iconthemes
+libqt6svg6
+qt6-svg-plugins
+network-manager
+gnome-terminal
+xwayland
+xserver-xorg-core
+# Critical session and permission components
+libpam-systemd
+polkitd
+dbus-user-session
+accountsservice
+at-spi2-core
+libpam-runtime
+libnss-systemd
+zstd
+# MacTahoe dependencies
+sassc
+libglib2.0-dev-bin
+libxml2-utils
+git
+ca-certificates
+# Configuration tools
+dconf-cli
+gnome-tweaks
+gnome-shell-extension-manager
+wget
+curl
+unzip
+imagemagick
+# Browser and Multimedia
+vlc
+totem
+# Flatpak
+flatpak
+
+# GNOME Extensions
+gnome-shell-extensions
+gnome-shell-extension-appindicator
+gnome-shell-extension-gsconnect
+# Fildem HUD dependencies
+python3-gi
+python3-dbus
+gir1.2-bamf-3
+gir1.2-keybinder-3.0
+gir1.2-gtk-3.0
+gir1.2-webkit2-4.1
+gir1.2-glib-2.0
+bamfdaemon
+libbamf3-dev
+libkeybinder-3.0-dev
+appmenu-gtk3-module
+python3-setuptools
+python3-pip
+python3-xlib
+# Bootloader and Disk
+grub-pc
+grub-efi-amd64-bin
+efibootmgr
+calamares
+calamares-settings-debian
+# Standard Applications
+gnome-calculator
+gnome-calendar
+geary
+xournalpp
+loupe
+gnome-contacts
+gnome-music
+amberol
+endeavour
+gnome-clocks
+gnome-weather
+# Text editors
+nano
+vim
+gnome-text-editor
+# File Management and Portals
+nautilus
+python3-nautilus
+file-roller
+gnome-keyring
+xdg-desktop-portal-gnome
+xdg-desktop-portal
+xdg-user-dirs
+xdg-utils
+# PipeWire Audio
+pipewire-pulse
+pipewire-alsa
+wireplumber
+pavucontrol
+# Networking and GVFS Filesystems
+network-manager-gnome
+gvfs
+gvfs-backends
+# System Utilities
+e2fsprogs
+dosfstools
+xfsprogs
+ntfs-3g
+gparted
+gnome-disk-utility
+gnome-system-monitor
+gnome-logs
+baobab
+htop
+inxi
+wl-clipboard
+p7zip-full
+zip
+locales
+docker.io
+bluez
+bluez-tools
+rfkill
+autokey-gtk
+alsa-utils
+# QEMU/VirGL Acceleration
+libgl1-mesa-dri
+libvirglrenderer1
+libegl-mesa0
+libgbm1
+mesa-utils
+live-boot
+squashfs-tools
+# NVIDIA Drivers & Headers (only included with --nvidia; see build-iso.sh)
+nvidia-driver
+nvidia-settings
+linux-headers-amd64
+# Broadcom Drivers
+broadcom-sta-dkms
+dkms
+# Firmware Packages for Hardware/Graphics Compatibility
+firmware-linux
+firmware-misc-nonfree
+# Additional Wi-Fi/Bluetooth firmware for the live boot (same ones Calamares installs)
+firmware-iwlwifi
+firmware-realtek
+firmware-atheros
+firmware-brcm80211
+firmware-amd-graphics
+# X.Org drivers for AMD, ATI and Intel (NVIDIA via nvidia-driver with --nvidia;
+# nouveau covers modesetting, and avoids conflicts with nvidia-driver in --nvidia builds)
+xserver-xorg-video-amdgpu
+xserver-xorg-video-ati
+xserver-xorg-video-intel
+# Hardware video acceleration (VA-API) and Mesa Vulkan
+mesa-va-drivers
+mesa-vulkan-drivers
+intel-media-va-driver-non-free
+

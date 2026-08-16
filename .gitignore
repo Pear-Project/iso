@@ -1,0 +1,10 @@
+# Chroot build directories (rootfs-base, rootfs-target, ISO staging, output)
+build/
+
+# Log and debug files
+*.log
+*.tmp
+
+# QEMU temporary files
+.qemu_9p/
+__pycache__/
