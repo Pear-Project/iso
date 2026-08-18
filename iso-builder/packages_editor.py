@@ -1,4 +1,4 @@
-"""Line-based parser/writer for pear/airootfs/etc/packages.x86_64.
+"""Line-based parser/writer for profiles/<name>/packages.list.
 
 The file is mostly one package name per line. A package can be disabled by
 commenting the whole line out (e.g. "#electron"). A handful of lines are

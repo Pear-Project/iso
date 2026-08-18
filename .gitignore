@@ -1,5 +1,8 @@
-# Chroot build directories (rootfs-base, rootfs-target, ISO staging, output)
+# Chroot build directories (rootfs-base, rootfs-target, ISO staging)
 build/
+
+# Generated ISO output (now written to the repo root, not build/)
+*.iso
 
 # Log and debug files
 *.log

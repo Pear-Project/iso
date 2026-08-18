@@ -1,0 +1,38 @@
+# Product branding information. Ported from pearOS-archlinux/pear-calamares-config
+# (branding.desc), values adapted to match this profile's os-release
+# (NAME/VERSION/VERSION_CODENAME) and GRUB_DISTRIBUTOR instead of the Arch
+# build's "pearOS NiceC0re" / "26.08".
+---
+componentName:  pearOS
+
+welcomeStyleCalamares:   false
+welcomeExpandingLogo:   true
+
+windowExpanding:    fullscreen
+windowPlacement: center
+
+sidebar: qml,bottom
+navigation: widget
+
+strings:
+    productName:         pearOS Goldwing
+    shortProductName:    pearOS
+    version:             26.8
+    shortVersion:        26.8
+    versionedName:       pearOS Goldwing
+    shortVersionedName:  pearOS
+    bootloaderEntryName: pearOS Goldwing
+
+images:
+    productLogo:         "logo.png"
+    productIcon:         "icon.png"
+    productWelcome:      "welcome.png"
+
+style:
+   SidebarBackground:        "#1f1f1f"
+   SidebarText:              "#e0e0e0"
+   SidebarTextCurrent:       "#1f1f1f"
+   SidebarBackgroundCurrent: "#0a84ff"
+
+slideshow:               "show.qml"
+slideshowAPI: 2

@@ -1,41 +1,29 @@
-linux-image-amd64
+# The pearOS kernel itself isn't installed here: it's a GitHub Release asset
+# (too large for apt.pearos.xyz's GitHub Pages hosting), fetched and installed
+# in profiles/pear/customize.sh's profile_customize(). linux-libc-dev is the
+# regular Debian package, safe to bootstrap normally.
+linux-libc-dev
 systemd-sysv
 udev
 apt
 iproute2
 netbase
 procps
-isc-dhcp-client
 bash-completion
 sudo
 passwd
+adduser
 initramfs-tools
 libpam-modules
 util-linux
 dbus
-# GNOME Base
-gnome-shell
-gnome-session
-gnome-session-xsession
-gnome-control-center
-# SDDM Base
-sddm
-qt6-image-formats-plugins
-qml6-module-qtquick-layouts
-qml6-module-qtquick-templates
-qml6-module-qtquick-controls
-qml6-module-qtquick-window
-qml6-module-qt5compat-graphicaleffects
-qml6-module-org-kde-breeze
-qml6-module-org-kde-kirigami
-qml6-module-org-kde-kquickcontrolsaddons
-qml6-module-org-kde-iconthemes
-libqt6svg6
-qt6-svg-plugins
-network-manager
-gnome-terminal
-xwayland
-xserver-xorg-core
+# Boot splash engine. The actual pear-plymouth theme ships inside the
+# pearos-settings package (PROFILE_REPO_PACKAGES in packages.sh), not here.
+# plymouth-themes provides label-pango.so and other rendering plugins the
+# theme's .plymouth script needs (without it: "plugin label-pango.so is
+# missing" warning and a broken-looking splash).
+plymouth
+plymouth-themes
 # Critical session and permission components
 libpam-systemd
 polkitd
@@ -45,83 +33,88 @@ at-spi2-core
 libpam-runtime
 libnss-systemd
 zstd
-# MacTahoe dependencies
+network-manager
+# Plasma Wayland desktop (minimal -- no X11 server/session)
+sddm
+plasma-desktop
+plasma-workspace
+kwin-wayland
+kscreen
+upower
+powerdevil
+plasma-vault
+plasma-pa
+bluedevil
+print-manager
+plasma-nm
+xdg-desktop-portal-kde
+xdg-desktop-portal
+xdg-user-dirs
+xdg-utils
+breeze-gtk-theme
+xwayland
+nautilus
+konsole
+kate
+ark
+gnome-maps
+gwenview
+elisa
+kdeconnect
+# Bootloader and Disk. Ploader is vendored under profiles/<name>/ploader/
+# (not a package) and is live-USB only -- isolinux/syslinux-common just
+# provide the BIOS boot binaries Phase 7 copies out of this chroot for the
+# ISO itself. grub-efi-amd64-bin/grub-pc are for the INSTALLED system:
+# Calamares' stock "bootloader" module runs grub-install/update-grub on
+# the target after Calamares copies this chroot to disk, so those need to
+# actually exist here even though nothing in the live session uses them.
+isolinux
+syslinux-common
+efibootmgr
+grub-efi-amd64-bin
+grub-pc
+calamares
+calamares-settings-debian
+# Theming tooling
+# kdeglobals ships widgetStyle=kvantum-dark, needing the Kvantum engine itself
+qt-style-kvantum
 sassc
 libglib2.0-dev-bin
 libxml2-utils
 git
 ca-certificates
-# Configuration tools
-dconf-cli
-gnome-tweaks
-gnome-shell-extension-manager
 wget
 curl
 unzip
+# pearOS-installer (cloned in customize.sh) is an Electron app
+nodejs
+npm
 imagemagick
+# pearos-zshconfig's .zshrc sources zsh-autosuggestions directly and shells
+# out to `last` (moved from util-linux to wtmpdb on modern Debian) for a
+# login banner -- needs all three or shells fail to start
+zsh
+zsh-autosuggestions
+wtmpdb
+# wtmpdb alone only tracks boot/shutdown (wtmpdb-update-boot.service) --
+# without this, no PAM hook actually records logins, so `last <user>` is
+# always empty regardless. Debian's libpam-* packages self-register via
+# pam-auth-update in their postinst, no manual /etc/pam.d edit needed.
+libpam-wtmpdb
 # Browser and Multimedia
 vlc
-totem
-# Flatpak
+# Flatpak support
 flatpak
-
-# GNOME Extensions
-gnome-shell-extensions
-gnome-shell-extension-appindicator
-gnome-shell-extension-gsconnect
-# Fildem HUD dependencies
-python3-gi
-python3-dbus
-gir1.2-bamf-3
-gir1.2-keybinder-3.0
-gir1.2-gtk-3.0
-gir1.2-webkit2-4.1
-gir1.2-glib-2.0
-bamfdaemon
-libbamf3-dev
-libkeybinder-3.0-dev
-appmenu-gtk3-module
-python3-setuptools
-python3-pip
-python3-xlib
-# Bootloader and Disk
-grub-pc
-grub-efi-amd64-bin
-efibootmgr
-calamares
-calamares-settings-debian
-# Standard Applications
-gnome-calculator
-gnome-calendar
-geary
-xournalpp
-loupe
-gnome-contacts
-gnome-music
-amberol
-endeavour
-gnome-clocks
-gnome-weather
+gnome-software
 # Text editors
 nano
 vim
-gnome-text-editor
-# File Management and Portals
-nautilus
-python3-nautilus
-file-roller
-gnome-keyring
-xdg-desktop-portal-gnome
-xdg-desktop-portal
-xdg-user-dirs
-xdg-utils
 # PipeWire Audio
 pipewire-pulse
 pipewire-alsa
 wireplumber
 pavucontrol
 # Networking and GVFS Filesystems
-network-manager-gnome
 gvfs
 gvfs-backends
 # System Utilities
@@ -130,21 +123,16 @@ dosfstools
 xfsprogs
 ntfs-3g
 gparted
-gnome-disk-utility
-gnome-system-monitor
-gnome-logs
-baobab
 htop
 inxi
 wl-clipboard
-p7zip-full
+7zip
 zip
 locales
 docker.io
 bluez
 bluez-tools
 rfkill
-autokey-gtk
 alsa-utils
 # QEMU/VirGL Acceleration
 libgl1-mesa-dri
@@ -154,10 +142,12 @@ libgbm1
 mesa-utils
 live-boot
 squashfs-tools
-# NVIDIA Drivers & Headers (only included with --nvidia; see build-iso.sh)
+# NVIDIA Drivers (only included with --nvidia; see build-iso.sh). Kernel
+# headers to build the DKMS module against come from the linux-headers-*-pearos
+# entry (PROFILE_REPO_PACKAGES in packages.sh, version filled in dynamically
+# by repo.sh) instead of linux-headers-amd64, since the profile's actual
+# kernel is the custom pearOS one, not linux-image-amd64.
 nvidia-driver
-nvidia-settings
-linux-headers-amd64
 # Broadcom Drivers
 broadcom-sta-dkms
 dkms
@@ -170,13 +160,8 @@ firmware-realtek
 firmware-atheros
 firmware-brcm80211
 firmware-amd-graphics
-# X.Org drivers for AMD, ATI and Intel (NVIDIA via nvidia-driver with --nvidia;
-# nouveau covers modesetting, and avoids conflicts with nvidia-driver in --nvidia builds)
-xserver-xorg-video-amdgpu
-xserver-xorg-video-ati
-xserver-xorg-video-intel
-# Hardware video acceleration (VA-API) and Mesa Vulkan
+# Hardware video acceleration (VA-API) and Mesa Vulkan -- Wayland uses
+# DRM/KMS + Mesa directly, no xserver-xorg-video-* drivers needed
 mesa-va-drivers
 mesa-vulkan-drivers
 intel-media-va-driver-non-free
-
