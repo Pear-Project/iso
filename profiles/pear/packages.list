@@ -81,7 +81,6 @@ qt-style-kvantum
 sassc
 libglib2.0-dev-bin
 libxml2-utils
-git
 ca-certificates
 wget
 curl
