@@ -32,6 +32,30 @@ profile_customize() {
     $SUDO install -Dm755 "$ROOTFS_TARGET/usr/share/pearOS-installer/general_bin/bin_install" "$ROOTFS_TARGET/usr/local/bin/bin_install"
     $SUDO install -Dm755 "$ROOTFS_TARGET/usr/share/pearOS-installer/general_bin/bin_post" "$ROOTFS_TARGET/usr/local/bin/bin_post"
 
+    # Both post-install/ and system_install/frontend/ are Electron apps
+    # (package.json devDependencies: electron) but their own Makefiles jump
+    # straight to `npm start` without ever running `npm install` first --
+    # electron isn't in Debian's archive at all (npm-registry-only), so
+    # without this, bin_install/bin_post fail with "electron not found" the
+    # first time they're ever run. Installed here, at build time (network
+    # is available now), so the live session never needs internet for it.
+    echo "📦 Installing pearOS-installer's npm dependencies (electron)..."
+    $SUDO "$CHROOT_BIN" "$ROOTFS_TARGET" /bin/bash -c "
+        cd /usr/share/pearOS-installer/post-install && npm install
+        cd /usr/share/pearOS-installer/system_install/frontend && npm install
+    "
+
+    # calamares-settings-debian ships its own autostart hook
+    # (/etc/xdg/autostart/calamares-desktop-icon.desktop -> /usr/bin/
+    # add-calamares-desktop-icon) that drops a generic "Install Debian"
+    # icon onto every session's Desktop, on top of pearos-livecd-desktop's
+    # own pearOS-branded one. Disabling just the autostart hook (not the
+    # calamares/calamares-settings-debian packages -- Calamares itself
+    # still needs to be installed and configured) stops the duplicate icon
+    # without touching the actual installer.
+    echo "🗑️ Disabling calamares-settings-debian's duplicate Desktop icon autostart..."
+    $SUDO rm -f "$ROOTFS_TARGET/etc/xdg/autostart/calamares-desktop-icon.desktop"
+
     # Create the liveuser account at build time -- baked directly into the
     # squashfs, matching ../iso/'s airootfs/etc/passwd approach, instead of
     # relying on live-config's boot-time 0030-user-setup component. That
@@ -71,6 +95,19 @@ User=liveuser
 Session=plasma
 EOF
     $SUDO chmod 644 "$ROOTFS_TARGET/etc/sddm.conf.d/autologin.conf"
+
+    # SDDM never gets told which theme to use otherwise -- it silently
+    # falls back to its own packaged default (Breeze), even though
+    # pearOS/pearOS-dark themes are already installed (pearos-settings
+    # ships usr/share/sddm/themes/{pearOS,pearOS-dark}/). Applies to both
+    # the live session and the installed system (default user's login
+    # screen, since only liveuser has autologin).
+    echo "⚙️ Setting SDDM theme to pearOS-dark..."
+    cat <<EOF | $SUDO tee "$ROOTFS_TARGET/etc/sddm.conf.d/theme.conf" > /dev/null
+[Theme]
+Current=pearOS-dark
+EOF
+    $SUDO chmod 644 "$ROOTFS_TARGET/etc/sddm.conf.d/theme.conf"
 
     # Force Plymouth to not use SimpleDRM in the configuration file to prevent early boot graphics freezes
     if [ -f "$ROOTFS_TARGET/etc/plymouth/plymouthd.conf" ]; then

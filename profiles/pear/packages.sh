@@ -30,6 +30,7 @@ PROFILE_REPO_PACKAGES=(
     pearos-muternvf
     pearos-notch
     pearos-notes
+    pafari
     pearos-settings
     system-settings
     pearos-todo
