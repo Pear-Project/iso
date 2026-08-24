@@ -78,17 +78,24 @@ calamares-settings-debian
 # Theming tooling
 # kdeglobals ships widgetStyle=kvantum-dark, needing the Kvantum engine itself
 qt-style-kvantum
-sassc
-libglib2.0-dev-bin
-libxml2-utils
+# pafari's postinst runs glib-compile-schemas -- that binary is in
+# libglib2.0-bin ("Programs for the GLib library"), not libglib2.0-dev-bin
+# ("Development utilities", gdbus-codegen/glib-compile-resources -- nothing
+# we ship calls those). The dev package was in here instead, so the schema
+# compile step was silently failing (swallowed by `|| true` in the postinst).
+libglib2.0-bin
 ca-certificates
 wget
 curl
 unzip
-# pearOS-installer (cloned in customize.sh) is an Electron app
-nodejs
-npm
-imagemagick
+# pearOS-installer (cloned in customize.sh) is a Python/GTK4 app
+python3-gi
+python3-gi-cairo
+gir1.2-gtk-4.0
+# post-install's finish page shells out to qrencode when post_setup fails,
+# to turn the crash log (or a link to it, if online) into a scannable QR
+# code -- curl (already above) does the paste upload half of that
+qrencode
 # pearos-zshconfig's .zshrc sources zsh-autosuggestions directly and shells
 # out to `last` (moved from util-linux to wtmpdb on modern Debian) for a
 # login banner -- needs all three or shells fail to start
@@ -128,7 +135,6 @@ wl-clipboard
 7zip
 zip
 locales
-docker.io
 bluez
 bluez-tools
 rfkill

@@ -9,4 +9,4 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "$(readlink -f -- "$0")")" && pwd)"
 
 # build-iso.sh re-execs itself via pkexec/sudo if not already root, so no
 # elevation needed here.
-"${SCRIPT_DIR}/build-iso.sh" --profile pear --branch forky --nvidia
+"${SCRIPT_DIR}/build-iso.sh" --profile pear --branch forky --nvidia --clean-base --clean-target
