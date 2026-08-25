@@ -92,6 +92,8 @@ unzip
 python3-gi
 python3-gi-cairo
 gir1.2-gtk-4.0
+# gtkapp's wallpaper/liquid_gel/svgpath modules use numpy for array math
+python3-numpy
 # post-install's finish page shells out to qrencode when post_setup fails,
 # to turn the crash log (or a link to it, if online) into a scannable QR
 # code -- curl (already above) does the paste upload half of that
