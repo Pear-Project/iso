@@ -17,7 +17,7 @@ PROFILE_APT_RELEASE="latest"
 PROFILE_APT_URL="https://apt.pearos.xyz/x86_64/$PROFILE_APT_CHANNEL/$PROFILE_APT_RELEASE"
 
 profile_setup_repo() {
-    echo "--- 🌐 Configuring APT repositories (Debian Contrib/Backports and pearOS) ---"
+    echo "--- Configuring APT repositories (Debian Contrib/Backports and pearOS) ---"
     $SUDO sed -i "s/$DEBIAN_VERSION main/$DEBIAN_VERSION main contrib non-free non-free-firmware/g" "$ROOTFS_TARGET/etc/apt/sources.list"
     # backports only exists as a suite for the current stable release (trixie)
     # -- testing/unstable (forky/rolling) have no "-backports" suite at all.
@@ -28,7 +28,7 @@ profile_setup_repo() {
     # Import the pearOS signing key (fingerprint 0AB2 738C EF7E DC6B 7B45
     # 178D 4C1A 9F3C 131A CA95) straight into the chroot -- same key
     # pearos-apt-setup.sh imports on an already-installed system.
-    echo "🔑 Importing the pearOS APT signing key..."
+    echo "Importing the pearOS APT signing key..."
     $SUDO mkdir -p "$ROOTFS_TARGET/etc/apt/keyrings"
     $SUDO tee "$ROOTFS_TARGET/tmp/pearos-archive-key.asc" > /dev/null <<'EOF'
 -----BEGIN PGP PUBLIC KEY BLOCK-----
@@ -100,11 +100,11 @@ EOF
     # which includes a linux-headers-*-pearos entry) so /lib/modules/<ver>/
     # already exists when the headers package's dkms hook rebuilds
     # nvidia-driver/broadcom-sta-dkms/virtualbox-guest-utils against it.
-    echo "🐧 Fetching latest pearOS kernel release..."
+    echo "Fetching latest pearOS kernel release..."
     KERNEL_DEB_URL=$(curl -fsSL "https://api.github.com/repos/Pear-Project/debian-package-repo/releases/latest" \
         | jq -r '.assets[] | select(.name | test("^linux-image-.*\\.deb$")) | .browser_download_url' | head -n 1)
     if [ -z "$KERNEL_DEB_URL" ]; then
-        echo "❌ Error: no linux-image-*.deb asset found in the latest Pear-Project/debian-package-repo release."
+        echo "Error: no linux-image-*.deb asset found in the latest Pear-Project/debian-package-repo release."
         exit 1
     fi
     KERNEL_DEB_NAME="$(basename "$KERNEL_DEB_URL")"
@@ -118,21 +118,21 @@ EOF
     PEAROS_KERNEL_VERSION="${KERNEL_DEB_NAME#linux-image-}"
     PEAROS_KERNEL_VERSION="${PEAROS_KERNEL_VERSION%%_*}"
     PROFILE_REPO_PACKAGES=("${PROFILE_REPO_PACKAGES[@]/#linux-headers-*-pearos/linux-headers-$PEAROS_KERNEL_VERSION}")
-    echo "🐧 Kernel version: $PEAROS_KERNEL_VERSION (headers package: linux-headers-$PEAROS_KERNEL_VERSION)"
+    echo "Kernel version: $PEAROS_KERNEL_VERSION (headers package: linux-headers-$PEAROS_KERNEL_VERSION)"
 
     KERNEL_CACHE_DIR="$BUILD_DIR/kernel-cache"
     mkdir -p "$KERNEL_CACHE_DIR"
     if [ ! -f "$KERNEL_CACHE_DIR/$KERNEL_DEB_NAME" ]; then
-        echo "📥 Downloading $KERNEL_DEB_NAME..."
+        echo "Downloading $KERNEL_DEB_NAME..."
         curl -fL -o "$KERNEL_CACHE_DIR/$KERNEL_DEB_NAME.part" "$KERNEL_DEB_URL"
         mv "$KERNEL_CACHE_DIR/$KERNEL_DEB_NAME.part" "$KERNEL_CACHE_DIR/$KERNEL_DEB_NAME"
     else
-        echo "📦 Using cached $KERNEL_DEB_NAME (delete $KERNEL_CACHE_DIR to force a re-download)"
+        echo "Using cached $KERNEL_DEB_NAME (delete $KERNEL_CACHE_DIR to force a re-download)"
     fi
 
     $SUDO mkdir -p "$ROOTFS_TARGET/tmp/packages"
     $SUDO cp "$KERNEL_CACHE_DIR/$KERNEL_DEB_NAME" "$ROOTFS_TARGET/tmp/packages/"
-    echo "📦 Installing $KERNEL_DEB_NAME..."
+    echo "Installing $KERNEL_DEB_NAME..."
     $SUDO "$CHROOT_BIN" "$ROOTFS_TARGET" /bin/bash -c "
         set -e
         export DEBIAN_FRONTEND=noninteractive

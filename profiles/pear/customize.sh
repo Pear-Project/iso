@@ -7,7 +7,7 @@
 
 profile_customize() {
     # Configure Flathub so Discover/flatpak have somewhere to install from
-    echo "📦 Configuring Flathub repository..."
+    echo "Configuring Flathub repository..."
     $SUDO "$CHROOT_BIN" "$ROOTFS_TARGET" /bin/bash -c "
         flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo || true
     "
@@ -16,7 +16,7 @@ profile_customize() {
     # does for the upstream Arch project. Still has Arch/pacman-specific bits
     # (system_install/setup) that won't work on this Debian target as-is --
     # left alone on purpose, to be adapted separately later.
-    echo "📥 Cloning pearOS-installer..."
+    echo "Cloning pearOS-installer..."
     $SUDO rm -rf "$ROOTFS_TARGET/usr/share/pearOS-installer"
     $SUDO mkdir -p "$ROOTFS_TARGET/usr/share"
     $SUDO git clone --depth 1 https://github.com/Pear-Project/pearOS-installer.git "$ROOTFS_TARGET/usr/share/pearOS-installer"
@@ -28,7 +28,7 @@ profile_customize() {
     # of this repo"). Both scripts already cd to an absolute path
     # internally, so copying them onto $PATH as-is is enough to make the
     # icon actually launch something instead of failing outright.
-    echo "🔗 Wiring pearOS-installer's bin_install/bin_post onto PATH..."
+    echo "Wiring pearOS-installer's bin_install/bin_post onto PATH..."
     $SUDO install -Dm755 "$ROOTFS_TARGET/usr/share/pearOS-installer/general_bin/bin_install" "$ROOTFS_TARGET/usr/local/bin/bin_install"
     $SUDO install -Dm755 "$ROOTFS_TARGET/usr/share/pearOS-installer/general_bin/bin_post" "$ROOTFS_TARGET/usr/local/bin/bin_post"
 
@@ -40,7 +40,7 @@ profile_customize() {
     # calamares/calamares-settings-debian packages -- Calamares itself
     # still needs to be installed and configured) stops the duplicate icon
     # without touching the actual installer.
-    echo "🗑️ Disabling calamares-settings-debian's duplicate Desktop icon autostart..."
+    echo "Disabling calamares-settings-debian's duplicate Desktop icon autostart..."
     $SUDO rm -f "$ROOTFS_TARGET/etc/xdg/autostart/calamares-desktop-icon.desktop"
 
     # Create the liveuser account at build time -- baked directly into the
@@ -62,7 +62,7 @@ profile_customize() {
     # (the exact command ../iso/'s _make_customize_airootfs uses) copies it
     # correctly, so that's run explicitly afterward instead of relying on
     # whatever adduser did.
-    echo "👤 Creating liveuser account (build-time, matching ../iso/)..."
+    echo "Creating liveuser account (build-time, matching ../iso/)..."
     $SUDO "$CHROOT_BIN" "$ROOTFS_TARGET" /bin/bash -c "
         if ! grep -q '^liveuser:' /etc/passwd; then
             adduser --disabled-password --gecos liveuser liveuser
@@ -73,14 +73,14 @@ profile_customize() {
         chown -hR liveuser:liveuser /home/liveuser
     "
 
-    echo "⚙️ Disabling GDK portal settings lookup (GTK4 vs plasma-xdg-desktop-portal-kde icon/theme gap)..."
+    echo "Disabling GDK portal settings lookup (GTK4 vs plasma-xdg-desktop-portal-kde icon/theme gap)..."
     $SUDO mkdir -p "$ROOTFS_TARGET/etc/environment.d"
     cat <<EOF | $SUDO tee "$ROOTFS_TARGET/etc/environment.d/90-pearos-gtk-portal-fix.conf" > /dev/null
 GDK_DEBUG=no-portals
 EOF
     $SUDO chmod 644 "$ROOTFS_TARGET/etc/environment.d/90-pearos-gtk-portal-fix.conf"
 
-    echo "⚙️ Installing a watcher to keep gtk-decoration-layout correct across kde-config-gtk-style rewrites..."
+    echo "Installing a watcher to keep gtk-decoration-layout correct across kde-config-gtk-style rewrites..."
     $SUDO install -Dm755 /dev/stdin "$ROOTFS_TARGET/usr/local/bin/pearos-fix-gtk-decoration" <<'EOF'
 #!/bin/bash
 set -e
@@ -119,7 +119,7 @@ EOF
     $SUDO "$CHROOT_BIN" "$ROOTFS_TARGET" /bin/bash -c "systemctl --global enable pearos-gtk-decoration-fix.path"
 
     # Configure static autologin for SDDM live user inside the rootfs (Plasma Wayland session)
-    echo "⚙️ Configuring static autologin for the live session (Plasma Wayland)..."
+    echo "Configuring static autologin for the live session (Plasma Wayland)..."
     $SUDO mkdir -p "$ROOTFS_TARGET/etc/sddm.conf.d"
     cat <<EOF | $SUDO tee "$ROOTFS_TARGET/etc/sddm.conf.d/autologin.conf" > /dev/null
 [Autologin]
@@ -134,7 +134,7 @@ EOF
     # ships usr/share/sddm/themes/{pearOS,pearOS-dark}/). Applies to both
     # the live session and the installed system (default user's login
     # screen, since only liveuser has autologin).
-    echo "⚙️ Setting SDDM theme to pearOS-dark..."
+    echo "Setting SDDM theme to pearOS-dark..."
     cat <<EOF | $SUDO tee "$ROOTFS_TARGET/etc/sddm.conf.d/theme.conf" > /dev/null
 [Theme]
 Current=pearOS-dark
@@ -143,7 +143,7 @@ EOF
 
     # Force Plymouth to not use SimpleDRM in the configuration file to prevent early boot graphics freezes
     if [ -f "$ROOTFS_TARGET/etc/plymouth/plymouthd.conf" ]; then
-        echo "⚙️ Forcing UseSimpledrm=false in /etc/plymouth/plymouthd.conf..."
+        echo "Forcing UseSimpledrm=false in /etc/plymouth/plymouthd.conf..."
         $SUDO sed -i 's/^UseSimpledrm=.*/UseSimpledrm=false/' "$ROOTFS_TARGET/etc/plymouth/plymouthd.conf"
     fi
 
@@ -151,7 +151,7 @@ EOF
     # (usr/share/plymouth/themes/pear-plymouth/, already installed by Phase 5
     # since it's part of PROFILE_REPO_PACKAGES). Phase 6's update-initramfs
     # picks this selection up afterward.
-    echo "⚙️ Setting Plymouth theme to $PROFILE_PLYMOUTH_THEME..."
+    echo "Setting Plymouth theme to $PROFILE_PLYMOUTH_THEME..."
     $SUDO "$CHROOT_BIN" "$ROOTFS_TARGET" /bin/bash -c "
         plymouth-set-default-theme $PROFILE_PLYMOUTH_THEME
     "
@@ -167,7 +167,7 @@ EOF
     # hardcoded "Debian" (its own `lsb_release -i -s || echo Debian`
     # default, and lsb_release isn't installed here anyway) -- menu entries
     # would read "Debian GNU/Linux" regardless of /etc/os-release branding.
-    echo "🎨 Installing pearOS GRUB theme and branding for the installed system..."
+    echo "Installing pearOS GRUB theme and branding for the installed system..."
     $SUDO mkdir -p "$ROOTFS_TARGET/usr/share/grub/themes"
     $SUDO cp -r "$PROFILE_DIR/grub-theme/pearOS" "$ROOTFS_TARGET/usr/share/grub/themes/pearOS"
     if [ -f "$ROOTFS_TARGET/etc/default/grub" ]; then
@@ -196,13 +196,13 @@ EOF
     # adopted here, adapted for Debian (chroot not arch-chroot, sudo group
     # not wheel; see calamares-branding/shellprocess-pearos-autouser.conf
     # for the rest of the diff).
-    echo "🎨 Installing pearOS Calamares branding..."
+    echo "Installing pearOS Calamares branding..."
     $SUDO mkdir -p "$ROOTFS_TARGET/etc/calamares/branding"
     $SUDO cp -r "$PROFILE_DIR/calamares-branding/pearOS" "$ROOTFS_TARGET/etc/calamares/branding/pearOS"
     $SUDO cp "$PROFILE_DIR/calamares-branding/shellprocess-pearos-autouser.conf" "$ROOTFS_TARGET/etc/calamares/modules/shellprocess-pearos-autouser.conf"
 
     if [ -f "$ROOTFS_TARGET/etc/calamares/settings.conf" ]; then
-        echo "⚙️ Switching Calamares to pearOS branding and default-user creation..."
+        echo "Switching Calamares to pearOS branding and default-user creation..."
         $SUDO sed -i 's/^branding: debian$/branding: pearOS/' "$ROOTFS_TARGET/etc/calamares/settings.conf"
         # Drop the interactive "users" step (both the show-phase page and
         # its exec-phase job) -- shellprocess@pearosautouser replaces it.
@@ -227,12 +227,12 @@ instances:\
         fi
     fi
 
-    echo "📦 Modernizing APT sources to the deb822 .sources format..."
+    echo "Modernizing APT sources to the deb822 .sources format..."
     $SUDO "$CHROOT_BIN" "$ROOTFS_TARGET" /bin/bash -c "
         yes | apt modernize-sources || true
     "
 
-    echo "🔗 Exposing shutdown/reboot/poweroff/halt on regular users' PATH..."
+    echo "Exposing shutdown/reboot/poweroff/halt on regular users' PATH..."
     for cmd in shutdown reboot poweroff halt; do
         $SUDO ln -sf "/usr/sbin/$cmd" "$ROOTFS_TARGET/usr/local/bin/$cmd"
     done
