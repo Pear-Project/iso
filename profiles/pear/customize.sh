@@ -73,6 +73,51 @@ profile_customize() {
         chown -hR liveuser:liveuser /home/liveuser
     "
 
+    echo "⚙️ Disabling GDK portal settings lookup (GTK4 vs plasma-xdg-desktop-portal-kde icon/theme gap)..."
+    $SUDO mkdir -p "$ROOTFS_TARGET/etc/environment.d"
+    cat <<EOF | $SUDO tee "$ROOTFS_TARGET/etc/environment.d/90-pearos-gtk-portal-fix.conf" > /dev/null
+GDK_DEBUG=no-portals
+EOF
+    $SUDO chmod 644 "$ROOTFS_TARGET/etc/environment.d/90-pearos-gtk-portal-fix.conf"
+
+    echo "⚙️ Installing a watcher to keep gtk-decoration-layout correct across kde-config-gtk-style rewrites..."
+    $SUDO install -Dm755 /dev/stdin "$ROOTFS_TARGET/usr/local/bin/pearos-fix-gtk-decoration" <<'EOF'
+#!/bin/bash
+set -e
+LAYOUT='close,minimize,maximize:'
+for f in "$HOME/.config/gtk-3.0/settings.ini" "$HOME/.config/gtk-4.0/settings.ini"; do
+    [ -f "$f" ] || continue
+    grep -q "^gtk-decoration-layout=$LAYOUT\$" "$f" && continue
+    if grep -q '^gtk-decoration-layout=' "$f"; then
+        sed -i "s/^gtk-decoration-layout=.*/gtk-decoration-layout=$LAYOUT/" "$f"
+    else
+        sed -i "/^\[Settings\]/a gtk-decoration-layout=$LAYOUT" "$f"
+    fi
+done
+EOF
+
+    $SUDO mkdir -p "$ROOTFS_TARGET/usr/lib/systemd/user"
+    cat <<'EOF' | $SUDO tee "$ROOTFS_TARGET/usr/lib/systemd/user/pearos-gtk-decoration-fix.path" > /dev/null
+[Unit]
+Description=Watch for kde-config-gtk-style rewriting gtk-decoration-layout
+
+[Path]
+PathModified=%h/.config/gtk-3.0/settings.ini
+PathModified=%h/.config/gtk-4.0/settings.ini
+
+[Install]
+WantedBy=default.target
+EOF
+    cat <<'EOF' | $SUDO tee "$ROOTFS_TARGET/usr/lib/systemd/user/pearos-gtk-decoration-fix.service" > /dev/null
+[Unit]
+Description=Restore pearOS's gtk-decoration-layout after a settings.ini rewrite
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/pearos-fix-gtk-decoration
+EOF
+    $SUDO "$CHROOT_BIN" "$ROOTFS_TARGET" /bin/bash -c "systemctl --global enable pearos-gtk-decoration-fix.path"
+
     # Configure static autologin for SDDM live user inside the rootfs (Plasma Wayland session)
     echo "⚙️ Configuring static autologin for the live session (Plasma Wayland)..."
     $SUDO mkdir -p "$ROOTFS_TARGET/etc/sddm.conf.d"
@@ -181,4 +226,14 @@ instances:\
             fi
         fi
     fi
+
+    echo "📦 Modernizing APT sources to the deb822 .sources format..."
+    $SUDO "$CHROOT_BIN" "$ROOTFS_TARGET" /bin/bash -c "
+        yes | apt modernize-sources || true
+    "
+
+    echo "🔗 Exposing shutdown/reboot/poweroff/halt on regular users' PATH..."
+    for cmd in shutdown reboot poweroff halt; do
+        $SUDO ln -sf "/usr/sbin/$cmd" "$ROOTFS_TARGET/usr/local/bin/$cmd"
+    done
 }

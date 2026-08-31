@@ -38,6 +38,7 @@ PROFILE_REPO_PACKAGES=(
     pearos-window-borders
     pearos-window-tinter
     pearos-zshconfig
+    hyprvisor
     # Only published on apt.pearos.xyz (system-overview isn't in Debian at
     # all; neofetch's pearOS build is newer than Debian's own)
     system-overview

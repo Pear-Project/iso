@@ -42,6 +42,7 @@ kwin-wayland
 kscreen
 upower
 powerdevil
+kde-config-gtk-style
 plasma-vault
 plasma-pa
 bluedevil
@@ -149,15 +150,6 @@ libgbm1
 mesa-utils
 live-boot
 squashfs-tools
-# NVIDIA Drivers (only included with --nvidia; see build-iso.sh). Kernel
-# headers to build the DKMS module against come from the linux-headers-*-pearos
-# entry (PROFILE_REPO_PACKAGES in packages.sh, version filled in dynamically
-# by repo.sh) instead of linux-headers-amd64, since the profile's actual
-# kernel is the custom pearOS one, not linux-image-amd64.
-nvidia-driver
-# Broadcom Drivers
-broadcom-sta-dkms
-dkms
 # Firmware Packages for Hardware/Graphics Compatibility
 firmware-linux
 firmware-misc-nonfree

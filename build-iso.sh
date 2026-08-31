@@ -1030,10 +1030,20 @@ if [ -n "$PULSAR_VERSION" ]; then
     VER_SUFFIX="-${PULSAR_VERSION}"
 fi
 
+# Mirrors ../iso/'s pearOS-<codename>-<version>-<arch>.iso naming, with the
+# archiso codename slot (there hardcoded to "NiceC0re") replaced by this
+# engine's --profile name so different profiles get distinct filenames.
+case "$ARCH" in
+    amd64) ISO_ARCH="x86_64" ;;
+    arm64) ISO_ARCH="aarch64" ;;
+    *) ISO_ARCH="$ARCH" ;;
+esac
+
+ISO_CODENAME="${PROFILE_CODENAME:-$PROFILE}"
 if $WITH_NVIDIA; then
-    ISO_OUTPUT="$ISO_DIR/${PROFILE_ISO_PREFIX}-${BRANCH}${VER_SUFFIX}-nvidia.iso"
+    ISO_OUTPUT="$ISO_DIR/pearOS-${ISO_CODENAME}-$(date +%Y.%m)-${ISO_ARCH}${VER_SUFFIX}-nvidia.iso"
 else
-    ISO_OUTPUT="$ISO_DIR/${PROFILE_ISO_PREFIX}-${BRANCH}${VER_SUFFIX}.iso"
+    ISO_OUTPUT="$ISO_DIR/pearOS-${ISO_CODENAME}-$(date +%Y.%m)-${ISO_ARCH}${VER_SUFFIX}.iso"
 fi
 
 echo "💿 Generating hybrid ISO file at: $ISO_OUTPUT..."
