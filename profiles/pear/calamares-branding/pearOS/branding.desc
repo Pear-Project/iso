@@ -8,10 +8,10 @@ componentName:  pearOS
 welcomeStyleCalamares:   false
 welcomeExpandingLogo:   true
 
-windowExpanding:    fullscreen
+windowExpanding:    normal
 windowPlacement: center
 
-sidebar: qml,bottom
+sidebar: none
 navigation: widget
 
 strings:
