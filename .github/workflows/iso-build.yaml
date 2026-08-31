@@ -158,11 +158,17 @@ jobs:
           git config user.name "pearOS build bot"
           git config user.email "actions@users.noreply.github.com"
 
-          if git diff --quiet -- sha.txt; then
+          # `git diff --quiet -- sha.txt` only catches changes to an
+          # already-tracked file -- on the very first run, sha.txt doesn't
+          # exist in the repo yet, and diff silently reports "no
+          # differences" for an untracked path, skipping the commit
+          # entirely. Stage first, then check the staged diff instead --
+          # that correctly reports a change for a brand-new file too.
+          git add sha.txt
+          if git diff --cached --quiet -- sha.txt; then
             echo "sha.txt unchanged, nothing to commit."
             exit 0
           fi
 
-          git add sha.txt
           git commit -m "Update sha.txt for $(basename "$ISO_FILE")"
           git push origin "${GITHUB_REF_NAME}"
