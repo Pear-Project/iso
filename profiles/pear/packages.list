@@ -133,13 +133,10 @@ xfsprogs
 ntfs-3g
 gparted
 htop
-inxi
-wl-clipboard
 7zip
 zip
 locales
 bluez
-bluez-tools
 rfkill
 alsa-utils
 # QEMU/VirGL Acceleration
@@ -147,9 +144,13 @@ libgl1-mesa-dri
 libvirglrenderer1
 libegl-mesa0
 libgbm1
-mesa-utils
 live-boot
 squashfs-tools
+# pearOS-installer's bin_install/bin_post (desktop icon + post-install) run
+# `make` in system_install/ and post-install/ -- this used to come along for
+# free as a dependency of dkms, which no longer ships in the base image now
+# that NVIDIA/Broadcom drivers install on demand via hyprvisor instead.
+make
 # Firmware Packages for Hardware/Graphics Compatibility
 firmware-linux
 firmware-misc-nonfree

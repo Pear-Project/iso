@@ -84,14 +84,14 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         *)
-            echo "❌ Unknown option: $1"
+            echo "Unknown option: $1"
             exit 1
             ;;
     esac
 done
 
 if [ "$BRANCH" != "stable" ] && [ "$BRANCH" != "forky" ] && [ "$BRANCH" != "rolling" ]; then
-    echo "❌ Error: Branch must be 'stable', 'forky' or 'rolling'. Value received: $BRANCH"
+    echo "Error: Branch must be 'stable', 'forky' or 'rolling'. Value received: $BRANCH"
     exit 1
 fi
 
@@ -102,12 +102,12 @@ ISO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="$ISO_DIR/build"
 PROFILE_DIR="$ISO_DIR/profiles/$PROFILE"
 if [ ! -d "$PROFILE_DIR" ]; then
-    echo "❌ Error: Unknown profile '$PROFILE' (expected directory: $PROFILE_DIR)"
+    echo "Error: Unknown profile '$PROFILE' (expected directory: $PROFILE_DIR)"
     exit 1
 fi
 for required in profile.conf packages.list repo.sh packages.sh customize.sh; do
     if [ ! -f "$PROFILE_DIR/$required" ]; then
-        echo "❌ Error: Profile '$PROFILE' is missing $required"
+        echo "Error: Profile '$PROFILE' is missing $required"
         exit 1
     fi
 done
@@ -172,7 +172,7 @@ fi
 
 # Install dependencies if they are missing
 if [ ${#MISSING_PACKAGES[@]} -ne 0 ]; then
-    echo "⚠️ Essential dependencies detected to be missing from the host: ${MISSING_PACKAGES[*]}"
+    echo "Essential dependencies detected to be missing from the host: ${MISSING_PACKAGES[*]}"
     echo "These tools are required for the ISO build."
     
     # SAFETY GUARD: never touch the host package manager by default.
@@ -180,7 +180,7 @@ if [ ${#MISSING_PACKAGES[@]} -ne 0 ]; then
     # pacman/apt operations (especially 'pacman -Sy' partial upgrades) can break it.
     # Only auto-install when explicitly requested with --install-host-deps.
     if [ "$ALLOW_HOST_INSTALL" != "true" ]; then
-        echo "❌ Missing host dependencies. They will NOT auto-install to protect your system."
+        echo "Missing host dependencies. They will NOT auto-install to protect your system."
         echo "   Manually install missing packages (e.g. sudo pacman -S ${MISSING_PACKAGES[*]})"
         echo "   or repeat the command with the variable ALLOW_HOST_INSTALL=true to authorize the installation."
         exit 1
@@ -208,7 +208,7 @@ if [ ${#MISSING_PACKAGES[@]} -ne 0 ]; then
         fi
 
         if [ -z "$pkg_manager" ]; then
-            echo "❌ Error: A supported package manager (apt or pacman) was not detected."
+            echo "Error: A supported package manager (apt or pacman) was not detected."
             exit 1
         fi
 
@@ -231,7 +231,7 @@ if [ ${#MISSING_PACKAGES[@]} -ne 0 ]; then
         packages_to_install=($(echo "${packages_to_install[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
 
         if [ ${#packages_to_install[@]} -gt 0 ]; then
-            echo "📥 Installing dependencies on the host using $pkg_manager..."
+            echo "Installing dependencies on the host using $pkg_manager..."
             if [ "$pkg_manager" = "pacman" ]; then
                 # Separate official pacman packages from AUR packages
                 pacman_official=()
@@ -245,7 +245,7 @@ if [ ${#MISSING_PACKAGES[@]} -ne 0 ]; then
                 done
 
                 if [ ${#pacman_official[@]} -gt 0 ]; then
-                    echo "📥 Installing official dependencies using pacman..."
+                    echo "Installing official dependencies using pacman..."
                     if command -v pkexec >/dev/null 2>&1 && [ -n "$DISPLAY" ]; then
                         pkexec pacman -S --needed --noconfirm "${pacman_official[@]}"
                     else
@@ -254,7 +254,7 @@ if [ ${#MISSING_PACKAGES[@]} -ne 0 ]; then
                 fi
 
                 if [ ${#aur_packages[@]} -gt 0 ]; then
-                    echo "⚠️ The following packages are from the AUR repository and are not in the official repos:"
+                    echo "The following packages are from the AUR repository and are not in the official repos:"
                     echo "   ${aur_packages[*]}"
                     
                     # Try to locate an AUR helper
@@ -266,7 +266,7 @@ if [ ${#MISSING_PACKAGES[@]} -ne 0 ]; then
                     fi
 
                     if [ -n "$aur_helper" ]; then
-                        echo "🚀 An AUR helper has been detected: $aur_helper. Installing..."
+                        echo "An AUR helper has been detected: $aur_helper. Installing..."
                         # Run AUR helper as the original non-root user if SUDO_USER is defined
                         if [ -n "$SUDO_USER" ] && [ "$SUDO_USER" != "root" ]; then
                             sudo -u "$SUDO_USER" "$aur_helper" -S --noconfirm "${aur_packages[@]}"
@@ -274,7 +274,7 @@ if [ ${#MISSING_PACKAGES[@]} -ne 0 ]; then
                             "$aur_helper" -S --noconfirm "${aur_packages[@]}"
                         fi
                     else
-                        echo "❌ No AUR helper (like yay or paru) detected."
+                        echo "No AUR helper (like yay or paru) detected."
                         echo "Please install these packages manually before continuing:"
                         echo "   yay -S ${aur_packages[*]}"
                         exit 1
@@ -287,12 +287,12 @@ if [ ${#MISSING_PACKAGES[@]} -ne 0 ]; then
                     sudo apt-get update && sudo apt-get install -y "${packages_to_install[@]}"
                 fi
             fi
-            echo "✅ Successfully installed dependencies."
+            echo "Successfully installed dependencies."
         else
-            echo "✅ There are no packages to install for your platform."
+            echo "There are no packages to install for your platform."
         fi
     else
-        echo "❌ Error: Host requirements cannot be met. Going out..."
+        echo "Error: Host requirements cannot be met. Going out..."
         exit 1
     fi
 fi
@@ -301,7 +301,7 @@ fi
 # Helper: Auto-Elevate to Root
 # ==============================================================================
 if [ "$EUID" -ne 0 ]; then
-    echo "🔐 This script requires superuser privileges to run."
+    echo "This script requires superuser privileges to run."
     echo "Re-executing with pkexec..."
     if command -v pkexec >/dev/null 2>&1 && [ -n "$DISPLAY" ]; then
         exec pkexec "$0" "${ORIGINAL_ARGS[@]}"
@@ -359,7 +359,7 @@ CHROOT_BIN=$(command -v chroot || echo "/usr/sbin/chroot")
 
 # Preventative cleanup function to ensure filesystems are unmounted on interruption
 cleanup() {
-    echo "🧹 Terminating and freeing chroot-mounted resources..."
+    echo "Terminating and freeing chroot-mounted resources..."
     # Generic sweep (covers ROOTFS_TARGET, ROOTFS_BASE, and anything else
     # mounted under $BUILD_DIR) instead of two hardcoded path lists, so an
     # incremental install into either one (see install_packages_into) is
@@ -412,7 +412,7 @@ install_packages_into() {
 # Preflight: release any leftover mounts from previous interrupted builds.
 # This runs once at startup so a fresh build never fails on stale mounts.
 preflight_cleanup() {
-    echo "🔍 Checking residual mounts from previous builds..."
+    echo "Checking residual mounts from previous builds..."
     # Unmount anything mounted under the build directory (leftover chroot mounts)
     awk '$2 ~ "^'"$BUILD_DIR"'/" || $2 == "'"$BUILD_DIR"'" {print $2}' /proc/self/mounts 2>/dev/null | sort -r | while read -r mp; do
         echo "   Unmounting $mp"
@@ -425,7 +425,7 @@ preflight_cleanup() {
             $SUDO umount -l "$mp" 2>/dev/null || true
         fi
     done
-    echo "✅ Residual mnt check completed."
+    echo "Residual mnt check completed."
 }
 
 trap cleanup EXIT INT TERM
@@ -437,7 +437,7 @@ preflight_cleanup
 
 # Auto-cleanup if previous bootstrap was incomplete or corrupted
 if [ -d "$ROOTFS_BASE" ] && { [ ! -d "$ROOTFS_BASE/etc" ] || [ ! -d "$ROOTFS_BASE/proc" ] || [ ! -d "$ROOTFS_BASE/boot" ]; }; then
-    echo "⚠️ Incomplete or corrupt base cache detected. Cleaning to regenerate..."
+    echo "Incomplete or corrupt base cache detected. Cleaning to regenerate..."
     cleanup
     $SUDO rm -rf "$ROOTFS_BASE"
 fi
@@ -455,7 +455,7 @@ if [ -d "$ROOTFS_BASE" ] && [ -f "$PACKAGE_LIST_FILE" ]; then
     fi
 
     if [ ! -f "$ROOTFS_BASE/etc/build-base-packages.list" ]; then
-        echo "🔄 build-base-packages.list was not found in the cache. Regenerating base..."
+        echo "build-base-packages.list was not found in the cache. Regenerating base..."
         base_list_changed=true
     else
         cached_list=$(cat "$ROOTFS_BASE/etc/build-base-packages.list")
@@ -476,17 +476,17 @@ if $base_list_changed && ! $CLEAN_BASE && [ ${#removed_packages[@]} -eq 0 ] && [
 fi
 
 if $INCREMENTAL_BASE_UPDATE; then
-    echo "🔄 Package list grew by ${#added_packages[@]} package(s) since the cached base -- installing just those instead of a full rebuild: ${added_packages[*]}"
+    echo "Package list grew by ${#added_packages[@]} package(s) since the cached base -- installing just those instead of a full rebuild: ${added_packages[*]}"
     install_packages_into "$ROOTFS_BASE" "${added_packages[@]}"
     printf '%s\n' "$current_list" | $SUDO tee "$ROOTFS_BASE/etc/build-base-packages.list" > /dev/null
-    echo "✅ Base cache updated in place: $ROOTFS_BASE"
+    echo "Base cache updated in place: $ROOTFS_BASE"
     if [ -d "$ROOTFS_TARGET/etc" ] && ! $CLEAN_TARGET; then
-        echo "🔄 Applying the same new package(s) to the existing target rootfs..."
+        echo "Applying the same new package(s) to the existing target rootfs..."
         install_packages_into "$ROOTFS_TARGET" "${added_packages[@]}"
-        echo "✅ Existing target rootfs updated in place: $ROOTFS_TARGET"
+        echo "Existing target rootfs updated in place: $ROOTFS_TARGET"
     fi
 elif $CLEAN_BASE || [ "$base_list_changed" = true ]; then
-    echo "🚨 Base cache cleanup requested or package list change detected..."
+    echo "Base cache cleanup requested or package list change detected..."
     cleanup
     $SUDO rm -rf "$ROOTFS_BASE"
     # The target was cloned from the old base -- force a re-clone in Phase 3
@@ -499,17 +499,17 @@ if [ ! -d "$ROOTFS_BASE/etc" ]; then
     mkdir -p "$BUILD_DIR"
     
     if [ ! -f "$PACKAGE_LIST_FILE" ]; then
-        echo "❌ Error: Base packages file not found in: $PACKAGE_LIST_FILE"
+        echo "Error: Base packages file not found in: $PACKAGE_LIST_FILE"
         exit 1
     fi
     
-    echo "--- 📥 Creating Clean Debian Base (mmdebstrap) ---"
+    echo "--- Creating Clean Debian Base (mmdebstrap) ---"
 
     if $WITH_NVIDIA; then
-        echo "💚 Including proprietary hardware drivers (NVIDIA, Broadcom STA, DKMS, Headers) in the installation..."
+        echo "Including proprietary hardware drivers (NVIDIA, Broadcom STA, DKMS, Headers) in the installation..."
         PACKAGE_LIST=$(grep -v '^#' "$PACKAGE_LIST_FILE" | grep -v '^$' | tr '\n' ',' | sed 's/,$//')
     else
-        echo "💙 Excluding proprietary drivers (NVIDIA, Broadcom STA, DKMS, Headers) from installation..."
+        echo "Excluding proprietary drivers (NVIDIA, Broadcom STA, DKMS, Headers) from installation..."
         PACKAGE_LIST=$(grep -v '^#' "$PACKAGE_LIST_FILE" | grep -v '^$' | grep -v -E 'nvidia-driver|nvidia-settings|broadcom-sta-dkms|dkms|linux-headers-amd64' | tr '\n' ',' | sed 's/,$//')
     fi
 
@@ -517,7 +517,7 @@ if [ ! -d "$ROOTFS_BASE/etc" ]; then
     KEYRING_PARAM=""
     if [ -f "/usr/share/keyrings/debian-archive-keyring.gpg" ]; then
         KEYRING_PARAM="--keyring=/usr/share/keyrings/debian-archive-keyring.gpg"
-        echo "🔑 Using Debian keyring: /usr/share/keyrings/debian-archive-keyring.gpg"
+        echo "Using Debian keyring: /usr/share/keyrings/debian-archive-keyring.gpg"
     fi
 
     # Execute Debian Bootstrap
@@ -538,9 +538,9 @@ if [ ! -d "$ROOTFS_BASE/etc" ]; then
         grep -v '^#' "$PACKAGE_LIST_FILE" | grep -v '^$' | grep -v -E 'nvidia-driver|nvidia-settings|broadcom-sta-dkms|dkms|linux-headers-amd64' | $SUDO tee "$ROOTFS_BASE/etc/build-base-packages.list" > /dev/null
     fi
 
-    echo "✅ Base Debian Bootstrap completed in: $ROOTFS_BASE"
+    echo "Base Debian Bootstrap completed in: $ROOTFS_BASE"
 else
-    echo "✨ Virgin base detected in cache. Jumping bootstrap."
+    echo "Virgin base detected in cache. Jumping bootstrap."
 fi
 
 # ==============================================================================
@@ -557,9 +557,9 @@ if ! $CLEAN_TARGET && [ -d "$ROOTFS_TARGET/etc" ]; then
 fi
 
 if $RESUME_TARGET; then
-    echo "--- ♻️  Reusing the existing target rootfs in: $ROOTFS_TARGET ---"
+    echo "---  Reusing the existing target rootfs in: $ROOTFS_TARGET ---"
 else
-    echo "--- 🔄 Cloning Debian base in the working directory (target) ---"
+    echo "--- Cloning Debian base in the working directory (target) ---"
     cleanup
     $SUDO rm -rf "$ROOTFS_TARGET"
     mkdir -p "$ROOTFS_TARGET"
@@ -572,7 +572,7 @@ fi
 # PHASE 4: Mount virtual filesystems and network
 # ==============================================================================
 
-echo "⚙️ Configuring virtual mounts and DNS..."
+echo "Configuring virtual mounts and DNS..."
 $SUDO mount -t proc proc "$ROOTFS_TARGET/proc"
 $SUDO mount -t sysfs sys "$ROOTFS_TARGET/sys"
 $SUDO mount --bind /dev "$ROOTFS_TARGET/dev"
@@ -607,18 +607,18 @@ if [ ${#PROFILE_BACKPORTS_PACKAGES[@]} -gt 0 ]; then
 fi
 
 if $USE_LOCAL_DEBS; then
-    echo "--- 🛠️ LOCAL DEVELOPMENT MODE: Installing local .deb packages ---"
+    echo "--- LOCAL DEVELOPMENT MODE: Installing local .deb packages ---"
     pkg_dir_source="$ISO_DIR/../PKG"
     if [ ! -d "$pkg_dir_source" ]; then
         pkg_dir_source="/home/jaime/Documentos/pulsarbase/PKG"
     fi
 
     if [ -f "$pkg_dir_source/package-and-deploy.sh" ]; then
-        echo "🔨 Building all local packages fresh for branch $BRANCH..."
+        echo "Building all local packages fresh for branch $BRANCH..."
         chmod +x "$pkg_dir_source/package-and-deploy.sh" 2>/dev/null || true
         (cd "$pkg_dir_source" && ./package-and-deploy.sh all --branch "$BRANCH")
     else
-        echo "⚠️ Warning: Packaging script not found in $pkg_dir_source/package-and-deploy.sh. An attempt will be made to use pre-existing debs."
+        echo "Warning: Packaging script not found in $pkg_dir_source/package-and-deploy.sh. An attempt will be made to use pre-existing debs."
     fi
 
     LOCAL_DEBS_DIR=""
@@ -637,13 +637,13 @@ if $USE_LOCAL_DEBS; then
     done
 
     if [ -z "$LOCAL_DEBS_DIR" ]; then
-        echo "❌Error: No local .deb packages found in any of the search paths:"
+        echo "Error: No local .deb packages found in any of the search paths:"
         for dir in "${POSSIBLE_DIRS[@]}"; do echo "   - $dir"; done
         echo "Run the packager in the PKG/ folder first."
         exit 1
     fi
 
-    echo "📂 Using local packages from: $LOCAL_DEBS_DIR"
+    echo "Using local packages from: $LOCAL_DEBS_DIR"
     $SUDO mkdir -p "$ROOTFS_TARGET/tmp/packages"
     $SUDO cp "$LOCAL_DEBS_DIR"/*.deb "$ROOTFS_TARGET/tmp/packages/"
 
@@ -667,9 +667,9 @@ EOF
     "
     $SUDO rm -rf "$ROOTFS_TARGET/tmp/packages"
     $SUDO rm -f "$ROOTFS_TARGET/etc/apt/preferences.d/local-$PROFILE_SLUG"
-    echo "✅ Local and cross-installed packages successfully."
+    echo "Local and cross-installed packages successfully."
 else
-    echo "---🌐 PRODUCTION MODE: Installing packages from APT repository ---"
+    echo "---PRODUCTION MODE: Installing packages from APT repository ---"
     $SUDO "$CHROOT_BIN" "$ROOTFS_TARGET" /bin/bash -c "
         set -e
         export DEBIAN_FRONTEND=noninteractive
@@ -687,7 +687,7 @@ fi
 profile_teardown_repo
 
 # Dynamically adjust Calamares configuration inside chroot based on distribution and selected bootloader
-echo "⚙️ Configuring Calamares in the chroot target..."
+echo "Configuring Calamares in the chroot target..."
 $SUDO mkdir -p "$ROOTFS_TARGET/etc/calamares/modules"
 
 # 1. Adjust modules search path in settings.conf to cover all possible Calamares module install paths
@@ -703,7 +703,7 @@ fi
 # already calls "bootloader" as-is.
 
 # 3. Create unpackfs.conf, packages.conf, and users.conf
-echo "⚙️ Generating Calamares configurations for Debian..."
+echo "Generating Calamares configurations for Debian..."
 
 # unpackfs.conf
 cat <<EOF | $SUDO tee "$ROOTFS_TARGET/etc/calamares/modules/unpackfs.conf" > /dev/null
@@ -766,18 +766,18 @@ profile_customize
 # PHASE 6: Final Tasks (Initramfs regeneration and cleanup)
 # ==============================================================================
 
-echo "--- 🔄 Finalizing and updating initramfs ---"
+echo "--- Finalizing and updating initramfs ---"
 $SUDO "$CHROOT_BIN" "$ROOTFS_TARGET" /bin/bash -c "
     update-initramfs -u -k all
 "
 
-echo "✨ Chroot rootfs ready and correctly structured in: $ROOTFS_TARGET"
+echo "Chroot rootfs ready and correctly structured in: $ROOTFS_TARGET"
 
 fi # RESUME_TARGET (PHASE 5 / 5.5 / 6)
 
 if $DROP_TO_CHROOT; then
     echo "=============================================================================="
-    echo "🐚 --chroot: dropping into an interactive shell in $ROOTFS_TARGET"
+    echo "--chroot: dropping into an interactive shell in $ROOTFS_TARGET"
     echo "   Virtual filesystems (proc/sys/dev) are still mounted."
     echo "=============================================================================="
     # Reset the controlling terminal before handing it to an interactive
@@ -788,7 +788,7 @@ if $DROP_TO_CHROOT; then
     stty sane 2>/dev/null || true
     $SUDO "$CHROOT_BIN" "$ROOTFS_TARGET" /bin/bash || true
     echo "=============================================================================="
-    echo "🐚 Exited chroot. Your changes are preserved in $ROOTFS_TARGET."
+    echo "Exited chroot. Your changes are preserved in $ROOTFS_TARGET."
     echo "   Run again anytime (--chroot or plain) to reuse this exact rootfs, or pass"
     echo "   --clean-target to start over. Run without --chroot to finish the ISO."
     echo "=============================================================================="
@@ -798,7 +798,7 @@ fi
 # ==============================================================================
 # PHASE 7: Packaging and Live ISO Generation
 # ==============================================================================
-echo "---💿 Creating $PROFILE_DISPLAY_NAME Live ISO Image ---"
+echo "---Creating $PROFILE_DISPLAY_NAME Live ISO Image ---"
 
 ISO_STAGING="$BUILD_DIR/iso-staging"
 $SUDO rm -rf "$ISO_STAGING"
@@ -806,7 +806,7 @@ mkdir -p "$ISO_STAGING/live"
 mkdir -p "$ISO_STAGING/boot"
 
 # 0. Clean temporary logs, test accounts, and unmount virtual filesystems prior to packaging
-echo "🧹 Sanitizing rootfs target (cleaning test logs, temporary accounts, and cache)..."
+echo "Sanitizing rootfs target (cleaning test logs, temporary accounts, and cache)..."
 $SUDO rm -rf "$ROOTFS_TARGET"/tmp/* "$ROOTFS_TARGET"/var/tmp/* "$ROOTFS_TARGET"/var/log/* 2>/dev/null || true
 $SUDO rm -f "$ROOTFS_TARGET"/etc/sudoers.d/$PROFILE_SLUG-user-* 2>/dev/null || true
 $SUDO rm -f "$ROOTFS_TARGET"/var/lib/AccountsService/users/* 2>/dev/null || true
@@ -819,7 +819,7 @@ $SUDO umount -l "$ROOTFS_TARGET/dev/pts" 2>/dev/null || true
 $SUDO umount -l "$ROOTFS_TARGET/dev" 2>/dev/null || true
 
 # 1. Compress rootfs into SquashFS
-echo "📦 Compressing rootfs into SquashFS..."
+echo "Compressing rootfs into SquashFS..."
 # Exclude dynamic/temp directories and virtual filesystems to save space and prevent errors
 SQUASHFS_OUT="$ISO_STAGING/live/filesystem.squashfs"
 $SUDO mksquashfs "$ROOTFS_TARGET" "$SQUASHFS_OUT" \
@@ -836,12 +836,12 @@ $SUDO mksquashfs "$ROOTFS_TARGET" "$SQUASHFS_OUT" \
     -e root/.bash_history
 
 # 2. Copy Kernel and Initrd to ISO staging
-echo "🐧 Copying Kernel and Initrd..."
+echo "Copying Kernel and Initrd..."
 KERNEL_FILE=$(ls "$ROOTFS_TARGET"/boot/vmlinuz-* 2>/dev/null | head -n 1)
 INITRD_FILE=$(ls "$ROOTFS_TARGET"/boot/initrd.img-* 2>/dev/null | head -n 1)
 
 if [ -z "$KERNEL_FILE" ] || [ -z "$INITRD_FILE" ]; then
-    echo "❌ Error: Kernel or initrd not found in target chroot."
+    echo "Error: Kernel or initrd not found in target chroot."
     exit 1
 fi
 
@@ -857,13 +857,13 @@ LEGACY_PARAMS="boot=live components username=liveuser autologin cow_spacesize=4G
 # UEFI: Ploader (pearOS's rEFInd 0.14.1 rebrand — prebuilt binary+theme,
 # vendored under profiles/<name>/ploader/, not compiled by this script)
 # --------------------------------------------------------------------------
-echo "💿 Creating bootable EFI image with Ploader..."
+echo "Creating bootable EFI image with Ploader..."
 $SUDO mkdir -p "$ISO_STAGING/EFI/BOOT"
 EFI_IMG="$ISO_STAGING/boot/efi.img"
 PLOADER_DIR="$PROFILE_DIR/ploader"
 
 if [ ! -f "$PLOADER_DIR/ploader_x64.efi" ] || [ ! -d "$PLOADER_DIR/theme" ]; then
-    echo "❌ Error: $PLOADER_DIR is missing ploader_x64.efi or theme/ -- this profile can't boot without them."
+    echo "Error: $PLOADER_DIR is missing ploader_x64.efi or theme/ -- this profile can't boot without them."
     exit 1
 fi
 
@@ -910,14 +910,14 @@ menuentry "$PROFILE_DISPLAY_NAME Live (Legacy Hardware / GPU nomodeset)" {
 }
 EOF
 
-echo "📂 Copying Ploader binary, theme and kernel/initrd to the ISO staging root..."
+echo "Copying Ploader binary, theme and kernel/initrd to the ISO staging root..."
 $SUDO cp "$PLOADER_DIR/ploader_x64.efi" "$ISO_STAGING/EFI/BOOT/BOOTx64.EFI"
 $SUDO cp -r "$PLOADER_DIR/theme" "$ISO_STAGING/EFI/BOOT/theme"
 $SUDO cp "$BUILD_DIR/ploader.conf" "$ISO_STAGING/EFI/BOOT/ploader.conf"
 $SUDO cp "$ISO_STAGING/live/vmlinuz" "$ISO_STAGING/EFI/BOOT/vmlinuz"
 $SUDO cp "$ISO_STAGING/live/initrd" "$ISO_STAGING/EFI/BOOT/initrd"
 
-echo "📥 Copying files to efi.img using mtools..."
+echo "Copying files to efi.img using mtools..."
 $SUDO mmd -i "$EFI_IMG" ::/EFI
 $SUDO mmd -i "$EFI_IMG" ::/EFI/BOOT
 $SUDO mcopy -i "$EFI_IMG" "$PLOADER_DIR/ploader_x64.efi" ::/EFI/BOOT/BOOTx64.EFI
@@ -933,11 +933,11 @@ $SUDO rm -f "$BUILD_DIR/ploader.conf"
 # packages so the boot binaries stay architecture/build-consistent regardless
 # of the host OS (see profiles/<name>/packages.list: isolinux + syslinux-common)
 # --------------------------------------------------------------------------
-echo "⚙️ Configuring syslinux for BIOS boot..."
+echo "Configuring syslinux for BIOS boot..."
 $SUDO mkdir -p "$ISO_STAGING/syslinux"
 ISOLINUX_BIN=$(find "$ROOTFS_TARGET/usr/lib/ISOLINUX" -name "isolinux.bin" 2>/dev/null | head -n 1)
 if [ -z "$ISOLINUX_BIN" ]; then
-    echo "❌ Error: isolinux.bin not found in rootfs (is the 'isolinux' package installed?)."
+    echo "Error: isolinux.bin not found in rootfs (is the 'isolinux' package installed?)."
     exit 1
 fi
 $SUDO cp "$ISOLINUX_BIN" "$ISO_STAGING/syslinux/isolinux.bin"
@@ -1046,7 +1046,7 @@ else
     ISO_OUTPUT="$ISO_DIR/pearOS-${ISO_CODENAME}-$(date +%Y.%m)-${ISO_ARCH}${VER_SUFFIX}.iso"
 fi
 
-echo "💿 Generating hybrid ISO file at: $ISO_OUTPUT..."
+echo "Generating hybrid ISO file at: $ISO_OUTPUT..."
 # Add a hybrid MBR so the ISO is a valid disk image: balenaEtcher requires it
 # and direct USB flashing (dd) needs it for UEFI to find the GPT ESP partition.
 # Prefer the chroot's own isohdpfx.bin (build-consistent), fall back to the host's.
@@ -1062,7 +1062,7 @@ for mbr in \
     fi
 done
 if [ -z "$HYBRID_MBR" ]; then
-    echo "❌ Error: No hybrid MBR template found (isohdpfx.bin). Install 'syslinux-common' in the chroot or on the host."
+    echo "Error: No hybrid MBR template found (isohdpfx.bin). Install 'syslinux-common' in the chroot or on the host."
     exit 1
 fi
 
@@ -1080,7 +1080,12 @@ $SUDO xorriso -as mkisofs \
   -isohybrid-gpt-basdat \
   "$ISO_STAGING"
 
+SHA256_OUTPUT="${ISO_OUTPUT}.sha256.txt"
+echo "Computing SHA-256 checksum..."
+(cd "$ISO_DIR" && $SUDO sha256sum "$(basename "$ISO_OUTPUT")" | $SUDO tee "$SHA256_OUTPUT" > /dev/null)
+
 echo "=============================================================================="
-echo "🎉 $PROFILE_DISPLAY_NAME ISO generated successfully!"
-echo "📍 Location: $ISO_OUTPUT"
+echo "$PROFILE_DISPLAY_NAME ISO generated successfully!"
+echo "Location: $ISO_OUTPUT"
+echo "Checksum: $SHA256_OUTPUT"
 echo "=============================================================================="
