@@ -79,6 +79,7 @@ jobs:
             imagemagick \
             psmisc \
             mtools \
+            dosfstools \
             debian-archive-keyring \
             git \
             ca-certificates
