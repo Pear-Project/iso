@@ -81,8 +81,13 @@ jobs:
             mtools \
             debian-archive-keyring \
             git \
-            ca-certificates \
-            rclone
+            ca-certificates
+
+      - name: Install rclone
+        # Not packaged in Debian's own archive (only Ubuntu's universe has
+        # it) -- official install script fetches the precompiled binary
+        # directly instead.
+        run: curl https://rclone.org/install.sh | bash
 
       - name: Starting Build
         run: |
