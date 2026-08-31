@@ -1,0 +1,162 @@
+name: Build pearOS Debian ISO
+
+on:
+  push:
+    branches: [ "main", "master" ]
+    paths:
+      - "profiles/**"
+      - "configs/**"
+      - "build-iso.sh"
+      - "kickstart.sh"
+      - ".github/workflows/iso-build.yaml"
+  schedule:
+    # Every Wednesday 03:00 UTC -- same day/time as the Arch build (see
+    # Pear-Project/iso's own .github/workflows/iso-build.yaml). The "second
+    # Wednesday of the month" part is enforced by the `gate` job below, not
+    # here: when both day-of-month and day-of-week are restricted, cron
+    # matches on EITHER, so '0 3 8-14 * 3' would fire on days 8-14 *plus*
+    # every Wednesday.
+    - cron: '0 3 * * 3'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  # Turns the weekly cron into "second Wednesday of the month". Only scheduled
+  # runs are gated -- push and workflow_dispatch always build.
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      proceed: ${{ steps.check.outputs.proceed }}
+    steps:
+      - id: check
+        run: |
+          if [ "${{ github.event_name }}" != "schedule" ]; then
+            echo "Event is ${{ github.event_name }}, not gating."
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # The cron already restricted this to a Wednesday; the second one of
+          # any month is always between the 8th and the 14th inclusive.
+          dom=$(date -u +%-d)
+          if [ "$dom" -ge 8 ] && [ "$dom" -le 14 ]; then
+            echo "Day $dom -- second Wednesday, building."
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Day $dom -- not the second Wednesday, skipping."
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  build-iso:
+    needs: gate
+    if: needs.gate.outputs.proceed == 'true'
+    runs-on: ubuntu-latest
+
+    container:
+      image: debian:forky
+      options: --privileged
+
+    steps:
+      - name: Checking out source code
+        uses: actions/checkout@v4
+
+      - name: Installing build dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            mmdebstrap \
+            fakeroot \
+            rsync \
+            jq \
+            curl \
+            unzip \
+            wget \
+            squashfs-tools \
+            xorriso \
+            sassc \
+            imagemagick \
+            psmisc \
+            mtools \
+            debian-archive-keyring \
+            git \
+            ca-certificates \
+            rclone
+
+      - name: Starting Build
+        run: |
+          chmod +x ./kickstart.sh
+          ./kickstart.sh
+
+      - name: Configure rclone (R2)
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ENDPOINT_URL: ${{ secrets.R2_ENDPOINT_URL }}
+        run: |
+          mkdir -p "${HOME}/.config/rclone"
+          cat > "${HOME}/.config/rclone/rclone.conf" <<EOF
+          [r2-pearos]
+          type = s3
+          provider = Cloudflare
+          access_key_id = ${R2_ACCESS_KEY_ID}
+          secret_access_key = ${R2_SECRET_ACCESS_KEY}
+          endpoint = ${R2_ENDPOINT_URL}
+          acl = private
+          EOF
+
+      - name: Uploading to R2 (pearos-cdn/iso)
+        run: |
+          ISO_FILE=$(ls ./*.iso 2>/dev/null | head -n 1)
+          SHA_FILE=$(ls ./*.iso.sha256.txt 2>/dev/null | head -n 1)
+
+          if [ -z "$ISO_FILE" ]; then
+            echo "[ ERR ]: Could not find ISO file."
+            exit 1
+          fi
+
+          echo "Uploading $ISO_FILE (file-size: $(du -h "$ISO_FILE" | cut -f1)) to Cloudflare R2 (pearos-cdn/iso)..."
+          rclone copy "$ISO_FILE" "r2-pearos:pearos-cdn/iso/" --progress
+
+          if [ -n "$SHA_FILE" ]; then
+            echo "Uploading $SHA_FILE to Cloudflare R2 (pearos-cdn/iso)..."
+            rclone copy "$SHA_FILE" "r2-pearos:pearos-cdn/iso/" --progress
+          else
+            echo "[ ERR ]: *.iso.sha256.txt not found, skipping checksum upload."
+          fi
+
+          echo "[ SUCCESS ] Upload finished"
+          echo "ISO_FILE=$ISO_FILE" >> "$GITHUB_ENV"
+          echo "SHA_FILE=$SHA_FILE" >> "$GITHUB_ENV"
+
+      - name: Commit updated sha.txt
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -z "$SHA_FILE" ]; then
+            echo "No checksum file from the previous step, nothing to commit."
+            exit 0
+          fi
+
+          new_sha=$(cat "$SHA_FILE")
+
+          clonedir=$(mktemp -d)
+          git clone --depth 1 --branch "${GITHUB_REF_NAME}" \
+            "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+            "$clonedir"
+
+          cd "$clonedir"
+          echo "$new_sha" > sha.txt
+
+          git config user.name "pearOS build bot"
+          git config user.email "actions@users.noreply.github.com"
+
+          if git diff --quiet -- sha.txt; then
+            echo "sha.txt unchanged, nothing to commit."
+            exit 0
+          fi
+
+          git add sha.txt
+          git commit -m "Update sha.txt for $(basename "$ISO_FILE")"
+          git push origin "${GITHUB_REF_NAME}"

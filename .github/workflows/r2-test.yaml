@@ -1,0 +1,42 @@
+name: Test R2 credentials
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install rclone
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rclone
+
+      - name: Configure rclone (R2)
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ENDPOINT_URL: ${{ secrets.R2_ENDPOINT_URL }}
+        run: |
+          mkdir -p "${HOME}/.config/rclone"
+          cat > "${HOME}/.config/rclone/rclone.conf" <<EOF
+          [r2-pearos]
+          type = s3
+          provider = Cloudflare
+          access_key_id = ${R2_ACCESS_KEY_ID}
+          secret_access_key = ${R2_SECRET_ACCESS_KEY}
+          endpoint = ${R2_ENDPOINT_URL}
+          acl = private
+          EOF
+
+      - name: Upload 0-byte test file
+        run: |
+          touch test-0b.txt
+          rclone copy test-0b.txt "r2-pearos:pearos-cdn/iso/" --progress
+          echo "Verifying it landed on R2..."
+          rclone lsl "r2-pearos:pearos-cdn/iso/test-0b.txt"
+
+      - name: Clean up remote test file
+        if: always()
+        run: |
+          rclone deletefile "r2-pearos:pearos-cdn/iso/test-0b.txt" || true
