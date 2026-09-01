@@ -104,11 +104,11 @@ A profile lives under `profiles/<name>/` and provides:
 
 ## Star History
 
-<a href="https://www.star-history.com/?type=date&legend=top-left&repos=pearOS-archlinux%2Fiso">
+<a href="https://www.star-history.com/?repos=Pear-Project%2Fiso&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=pearOS-archlinux/iso&type=date&theme=dark&legend=top-left&sealed_token=KCoZpQtRPSEfeJaKHJdmS0_mY6Cv50bUn53rlA25Zk-xK6-KJNEOgL9vbIL9nE20I4mYm9HWHfmGXSqyM7W_TnimzH3sqXTzulsuHnp01jqHaj70KM4ElA" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=pearOS-archlinux/iso&type=date&legend=top-left&sealed_token=KCoZpQtRPSEfeJaKHJdmS0_mY6Cv50bUn53rlA25Zk-xK6-KJNEOgL9vbIL9nE20I4mYm9HWHfmGXSqyM7W_TnimzH3sqXTzulsuHnp01jqHaj70KM4ElA" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=pearOS-archlinux/iso&type=date&legend=top-left&sealed_token=KCoZpQtRPSEfeJaKHJdmS0_mY6Cv50bUn53rlA25Zk-xK6-KJNEOgL9vbIL9nE20I4mYm9HWHfmGXSqyM7W_TnimzH3sqXTzulsuHnp01jqHaj70KM4ElA" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=Pear-Project/iso&type=date&theme=dark&legend=top-left&sealed_token=NMIHZsg3VJdXESixt4YJkhd8a0Rw-05CFsfbT8OzOi4mHHyKfZwdiHtohfx4PMWaKv4a7nR5AGWznlBxyOWcrq82-DSYvdXur6JUwnzDU0GX476E7bpU2A" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=Pear-Project/iso&type=date&legend=top-left&sealed_token=NMIHZsg3VJdXESixt4YJkhd8a0Rw-05CFsfbT8OzOi4mHHyKfZwdiHtohfx4PMWaKv4a7nR5AGWznlBxyOWcrq82-DSYvdXur6JUwnzDU0GX476E7bpU2A" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=Pear-Project/iso&type=date&legend=top-left&sealed_token=NMIHZsg3VJdXESixt4YJkhd8a0Rw-05CFsfbT8OzOi4mHHyKfZwdiHtohfx4PMWaKv4a7nR5AGWznlBxyOWcrq82-DSYvdXur6JUwnzDU0GX476E7bpU2A" />
  </picture>
 </a>
 
