@@ -172,3 +172,55 @@ jobs:
 
           git commit -m "Update sha.txt for $(basename "$ISO_FILE")"
           git push origin "${GITHUB_REF_NAME}"
+
+      - name: Update pearOS website (Pear-Project/web)
+        env:
+          WEB_REPO_PAT: ${{ secrets.WEB_REPO_PAT }}
+        run: |
+          if [ -z "$ISO_FILE" ] || [ -z "$SHA_FILE" ]; then
+            echo "No ISO/checksum file from earlier steps, skipping website update."
+            exit 0
+          fi
+
+          ISO_NAME=$(basename "$ISO_FILE")
+          SIZE_BYTES=$(stat -c%s "$ISO_FILE")
+          SIZE_HUMAN=$(awk -v b="$SIZE_BYTES" 'BEGIN{printf "%.1f GB", b/1000000000}')
+          SHA256=$(awk '{print $1}' "$SHA_FILE")
+          DOWNLOAD_URL="https://iso.pearos.xyz/iso/${ISO_NAME}"
+
+          echo "ISO: $ISO_NAME"
+          echo "Size: $SIZE_HUMAN ($SIZE_BYTES bytes)"
+          echo "SHA256: $SHA256"
+
+          clonedir=$(mktemp -d)
+          git clone --depth 1 "https://x-access-token:${WEB_REPO_PAT}@github.com/Pear-Project/web.git" "$clonedir"
+          cd "$clonedir"
+
+          JSON_FILE="assets/data/debian-versions.json"
+          if [ ! -f "$JSON_FILE" ]; then
+            echo "[ ERR ]: $JSON_FILE not found in Pear-Project/web, skipping."
+            exit 1
+          fi
+
+          tmpfile=$(mktemp)
+          jq --arg size "$SIZE_HUMAN" --arg sha "$SHA256" --arg dl "$DOWNLOAD_URL" \
+            '(map(select(.name == "Latest (Goldwing)")) | length) as $exists |
+             if $exists > 0 then
+               map(if .name == "Latest (Goldwing)" then .status="Available" | .size=$size | .sha256=$sha | .download=$dl else . end)
+             else
+               . + [{"name":"Latest (Goldwing)","status":"Available","size":$size,"sha256":$sha,"download":$dl}]
+             end' \
+            "$JSON_FILE" > "$tmpfile"
+          mv "$tmpfile" "$JSON_FILE"
+
+          git config user.name "pearOS build bot"
+          git config user.email "actions@users.noreply.github.com"
+
+          if git diff --quiet -- "$JSON_FILE"; then
+            echo "No changes to $JSON_FILE, nothing to commit."
+            exit 0
+          fi
+
+          git add "$JSON_FILE"
+          git commit -m "Update Debian download info: ${ISO_NAME}"
+          git push origin HEAD:main
