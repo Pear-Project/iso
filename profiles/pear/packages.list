@@ -74,6 +74,11 @@ syslinux-common
 efibootmgr
 grub-efi-amd64-bin
 grub-pc
+# os-prober isn't pulled in by grub-pc/grub-efi-amd64-bin on Debian, but
+# grub-mkconfig/update-grub only detects other OSes (Windows, other Linux
+# distros) when it's actually installed -- without it dual-boot machines
+# never get a Windows entry after install.
+os-prober
 calamares
 calamares-settings-debian
 # Theming tooling
