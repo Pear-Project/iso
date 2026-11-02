@@ -18,6 +18,11 @@ on:
     # every Wednesday.
     - cron: '0 3 * * 3'
   workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish to R2 and update sha.txt / the website (untick to build + test only)"
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -95,7 +100,81 @@ jobs:
           chmod +x ./kickstart.sh
           ./kickstart.sh
 
+      - name: Keep the ISO for the test job
+        uses: actions/upload-artifact@v4
+        with:
+          name: iso-under-test
+          path: |
+            *.iso
+            *.iso.sha256.txt
+          retention-days: 1
+          compression-level: 0
+
+  # Boots the ISO, installs it onto a virtual disk, boots the installed system,
+  # uses it, and only then publishes. Runs on the plain runner (not the Debian
+  # container) because it needs KVM and ~10 GB of free disk for the target. The
+  # test harness is shared with the Arch build (pearOS-archlinux/iso, tests/).
+  test-and-publish:
+    needs: build-iso
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - name: Checking out source code
+        uses: actions/checkout@v4
+
+      - name: Checking out the shared test harness
+        uses: actions/checkout@v4
+        with:
+          repository: pearOS-archlinux/iso
+          path: harness
+
+      - name: Free disk space (the installed test system needs ~10 GB)
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      - name: Install QEMU, OVMF, OCR, rclone
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 ovmf rclone tesseract-ocr ffmpeg jq
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls -l /dev/kvm || true; nproc; free -g | sed -n 2p
+
+      - name: Download the ISO
+        uses: actions/download-artifact@v4
+        with:
+          name: iso-under-test
+
+      - name: Boot test + end-to-end install + usability (QEMU)
+        id: boottest
+        # Never abort here: a failed test must still upload its screenshots,
+        # write the reason into README.md and quarantine the ISO (see below).
+        # The run is failed explicitly by the last step.
+        continue-on-error: true
+        run: |
+          ISO_FILE=$(find . -maxdepth 1 -name "*.iso" | head -n 1)
+          if [ -w /dev/kvm ]; then
+            # Install onto a 20 GB virtual disk, boot it, log in, run Konsole,
+            # apt-get dist-upgrade and a few apps. Needs KVM (about 30 min).
+            extra="--full-install --disk-dir $RUNNER_TEMP/target-disk --install-timeout 3600 --pacman-timeout 2400 --duration 240"
+          else
+            echo "::warning::No /dev/kvm on this runner: skipping the end-to-end install."
+            extra="--duration 600"
+          fi
+          python3 harness/tests/boot-test.py "$ISO_FILE" --distro debian --workdir "$GITHUB_WORKSPACE" \
+            --interval 10 --memory 8G $extra
+
+      - name: Upload boot screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boot-sequence
+          path: seq/
+
       - name: Configure rclone (R2)
+        if: github.event_name != 'workflow_dispatch' || inputs.publish
         env:
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
@@ -112,10 +191,19 @@ jobs:
           acl = private
           EOF
 
-      - name: Uploading to R2 (pearos-cdn/iso)
+      - name: Quarantine the ISO if the test failed (not published)
+        if: steps.boottest.outcome == 'failure' && (github.event_name != 'workflow_dispatch' || inputs.publish)
         run: |
-          ISO_FILE=$(ls ./*.iso 2>/dev/null | head -n 1)
-          SHA_FILE=$(ls ./*.iso.sha256.txt 2>/dev/null | head -n 1)
+          ISO_FILE=$(find . -maxdepth 1 -name "*.iso" | head -n 1)
+          NAME="$(basename "$ISO_FILE" .iso)-FAIL_TEST.iso"
+          echo "Test FAILED. Saving $ISO_FILE as failed/$NAME (the public iso/ folder is untouched)."
+          rclone copyto "$ISO_FILE" "r2-pearos:pearos-cdn/failed/$NAME" --progress
+
+      - name: Uploading to R2 (pearos-cdn/iso)
+        if: steps.boottest.outcome == 'success' && (github.event_name != 'workflow_dispatch' || inputs.publish)
+        run: |
+          ISO_FILE=$(find . -maxdepth 1 -name "*.iso" | head -n 1)
+          SHA_FILE=$(find . -maxdepth 1 -name "*.iso.sha256.txt" | head -n 1)
 
           if [ -z "$ISO_FILE" ]; then
             echo "[ ERR ]: Could not find ISO file."
@@ -136,16 +224,14 @@ jobs:
           echo "ISO_FILE=$ISO_FILE" >> "$GITHUB_ENV"
           echo "SHA_FILE=$SHA_FILE" >> "$GITHUB_ENV"
 
-      - name: Commit updated sha.txt
+      - name: Commit test status (and sha.txt when the ISO was published)
+        if: always() && steps.boottest.outcome != 'skipped' && (github.event_name != 'workflow_dispatch' || inputs.publish)
         env:
+          TEST_OUTCOME: ${{ steps.boottest.outcome }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          if [ -z "$SHA_FILE" ]; then
-            echo "No checksum file from the previous step, nothing to commit."
-            exit 0
-          fi
-
-          new_sha=$(cat "$SHA_FILE")
+          ISO_FILE=$(find "$GITHUB_WORKSPACE" -maxdepth 1 -name "*.iso" | head -n 1)
+          SHA_FILE=$(find "$GITHUB_WORKSPACE" -maxdepth 1 -name "*.iso.sha256.txt" | head -n 1)
 
           clonedir=$(mktemp -d)
           git clone --depth 1 --branch "${GITHUB_REF_NAME}" \
@@ -153,27 +239,42 @@ jobs:
             "$clonedir"
 
           cd "$clonedir"
-          echo "$new_sha" > sha.txt
+          # A failed (quarantined) ISO must not move sha.txt.
+          if [ "$TEST_OUTCOME" = "success" ] && [ -n "$SHA_FILE" ]; then
+            cat "$SHA_FILE" > sha.txt
+          fi
 
           git config user.name "pearOS build bot"
           git config user.email "actions@users.noreply.github.com"
 
-          # `git diff --quiet -- sha.txt` only catches changes to an
-          # already-tracked file -- on the very first run, sha.txt doesn't
-          # exist in the repo yet, and diff silently reports "no
-          # differences" for an untracked path, skipping the commit
-          # entirely. Stage first, then check the staged diff instead --
-          # that correctly reports a change for a brand-new file too.
-          git add sha.txt
-          if git diff --cached --quiet -- sha.txt; then
-            echo "sha.txt unchanged, nothing to commit."
+          # Test screenshots + the README section listing them.
+          rm -rf seq
+          [ -d "$GITHUB_WORKSPACE/seq" ] && cp -r "$GITHUB_WORKSPACE/seq" seq
+          # Web-sized copies (960px webp, ~25 KB each) for the Goldwing page gallery.
+          if [ -d seq ]; then
+            mkdir -p seq/web
+            for f in seq/[0-9]*.png; do
+              ffmpeg -loglevel error -y -i "$f" -vf scale=960:-1 -quality 70 \
+                "seq/web/$(basename "${f%.png}").webp" || true
+            done
+          fi
+          [ -f "$GITHUB_WORKSPACE/README.md" ] && cp "$GITHUB_WORKSPACE/README.md" README.md
+
+          git add -A sha.txt seq README.md
+          if git diff --cached --quiet; then
+            echo "Nothing to commit."
             exit 0
           fi
-
-          git commit -m "Update sha.txt for $(basename "$ISO_FILE")"
+          iso_name="$(basename "$ISO_FILE")"
+          if [ "$TEST_OUTCOME" = "success" ]; then
+            git commit -m "Update sha.txt for $iso_name"
+          else
+            git commit -m "Test FAILED for $iso_name: see README (Boot Status sequence)"
+          fi
           git push origin "${GITHUB_REF_NAME}"
 
       - name: Update pearOS website (Pear-Project/web)
+        if: steps.boottest.outcome == 'success' && (github.event_name != 'workflow_dispatch' || inputs.publish)
         env:
           WEB_REPO_PAT: ${{ secrets.WEB_REPO_PAT }}
         run: |
@@ -224,3 +325,68 @@ jobs:
           git add "$JSON_FILE"
           git commit -m "Update Debian download info: ${ISO_NAME}"
           git push origin HEAD:main
+
+      - name: Build the Discord release message
+        id: announce
+        # Official releases only: the monthly schedule and a manual run that
+        # publishes. Needs DISCORD_WEBHOOK (repo or org secret); without it the
+        # announcement is skipped and nothing else is affected.
+        if: steps.boottest.outcome == 'success' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.publish))
+        continue-on-error: true
+        env:
+          HAS_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK != '' }}
+        run: |
+          if [ "$HAS_WEBHOOK" != "true" ]; then
+            echo "::notice::DISCORD_WEBHOOK is not set for this repo; skipping the Discord announcement."
+            exit 1
+          fi
+          ISO_NAME=$(basename "$(find . -maxdepth 1 -name '*.iso' | head -n 1)" .iso)
+          # pearOS-Goldwing-Beta-2026.09-x86_64 -> "Goldwing Beta 2026.09"
+          echo "title=$(echo "$ISO_NAME" | sed -E 's/^pearOS-//; s/-x86_64$//; s/-/ /g')" >> "$GITHUB_OUTPUT"
+          echo "sha=$(cut -d' ' -f1 sha.txt 2>/dev/null || awk '{print $1}' ./*.iso.sha256.txt)" >> "$GITHUB_OUTPUT"
+          echo "score=$(python3 -c "import json;print(json.load(open('seq/result.json'))['score']['total'])" 2>/dev/null || echo '?')" >> "$GITHUB_OUTPUT"
+
+          # Newest entry of release_notes.md, same format as the website changelog.
+          NOTES=$(awk '
+            /^#+ [0-9]+ [A-Za-z]+ [0-9]{4}/ { count++; if (count == 2) exit }
+            count == 1 { print }
+          ' release_notes.md | \
+          sed 's|^### Known [Bb]ugs:\?$|**⚠️ Known bugs:**|' | \
+          sed 's|^## [Ii]nformation$||' | \
+          sed 's|^#\{1,3\} \([0-9][^*]*\)|**\1**|' | \
+          sed 's|^\* |- |' | \
+          grep -v '^https://' | grep -v '^<img' | grep -v '^[[:space:]]*$' | head -25)
+          {
+            echo 'notes<<EOF'
+            echo "$NOTES"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Announce the release on Discord
+        if: steps.announce.outcome == 'success'
+        continue-on-error: true
+        uses: sarisia/actions-status-discord@v1.16.0
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          nodetail: true
+          noprefix: true
+          title: "pearOS ${{ steps.announce.outputs.title }} is out!"
+          description: |
+            A new release of pearOS (Debian base) is available!
+
+            **Download:** https://pearos.xyz/debian/
+            **SHA256:** `${{ steps.announce.outputs.sha }}`
+            **Tested:** boots, installs and runs (success score ${{ steps.announce.outputs.score }}/100) - screenshots on the Goldwing page
+
+            **What's new:**
+            ${{ steps.announce.outputs.notes }}
+
+            **Bug reports:** #nicec0re-bugs-report or https://github.com/Pear-Project/iso/issues
+          color: 0xf5a623
+          username: pearOS Releases
+
+      - name: Fail the run if the test failed
+        if: always() && steps.boottest.outcome == 'failure'
+        run: |
+          echo "::error::Test failed - the ISO was NOT published. See the README 'Boot Status sequence' for the reason."
+          exit 1
