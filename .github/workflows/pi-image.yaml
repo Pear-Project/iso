@@ -1,0 +1,80 @@
+name: Build pearOS Raspberry Pi image
+
+# Builds the arm64 disk image (Debian forky + pearOS packages) on a GitHub-hosted
+# arm64 runner and boots it in QEMU (aarch64 'virt' + UEFI) to see how far it gets.
+# Manual only for now.
+on:
+  workflow_dispatch:
+    inputs:
+      boot_test:
+        description: "Boot the image in QEMU and take screenshots"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-image:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 180
+    steps:
+      - name: Checking out source code
+        uses: actions/checkout@v4
+
+      - name: Checking out the shared test harness
+        uses: actions/checkout@v4
+        with:
+          repository: pearOS-archlinux/iso
+          path: harness
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache/CodeQL || true
+          df -h /
+          ls -l /dev/kvm || echo "no /dev/kvm"
+
+      - name: Host tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq rsync dosfstools e2fsprogs fdisk xz-utils qemu-system-arm qemu-efi-aarch64
+
+      - name: Stage 1 - rootfs (mmdebstrap in a debian:forky container)
+        run: |
+          mkdir -p "$RUNNER_TEMP/pi-work"
+          sudo docker run --rm --privileged \
+            -v "$GITHUB_WORKSPACE":/src -v "$RUNNER_TEMP/pi-work":/work debian:forky \
+            bash -euxc '
+              apt-get update
+              apt-get install -y --no-install-recommends mmdebstrap debian-archive-keyring gnupg git ca-certificates
+              /src/pi/build-pi-image.sh --stage rootfs --work /work
+            '
+
+      - name: Stage 2 - disk image (loop devices on the runner)
+        run: |
+          sudo pi/build-pi-image.sh --stage image --work "$RUNNER_TEMP/pi-work" --out "$GITHUB_WORKSPACE/out"
+          ls -lh out/
+
+      - name: Keep the image
+        uses: actions/upload-artifact@v4
+        with:
+          name: pearos-pi-image
+          path: out/*
+          retention-days: 3
+          compression-level: 0
+
+      - name: Boot in QEMU (screenshots)
+        if: inputs.boot_test
+        continue-on-error: true
+        run: |
+          sudo rm -rf "$RUNNER_TEMP/pi-work/rootfs"
+          xz -dc out/pearOS-Goldwing-Pi-*-arm64.img.xz > "$RUNNER_TEMP/pi.img"
+          df -h /
+          python3 pi/qemu-smoke.py "$RUNNER_TEMP/pi.img" --harness harness/tests/boot-test.py --out "$GITHUB_WORKSPACE/pi-boot" --duration 480
+
+      - name: Upload boot screenshots
+        if: always() && inputs.boot_test
+        uses: actions/upload-artifact@v4
+        with:
+          name: pi-boot-sequence
+          path: pi-boot/

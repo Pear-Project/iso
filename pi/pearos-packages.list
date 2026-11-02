@@ -1,0 +1,26 @@
+# From apt.pearos.xyz/aarch64/main/latest (same set as profiles/pear/packages.sh,
+# without the live-only pearos-livecd-desktop and the amd64 kernel headers).
+pearos-appmenu
+pearos-bootsound
+pearos-calculator
+pearos-calendar
+pearos-contacts
+pearos-dock
+pearos-filesystem
+pearos-icons
+pearos-liquidgel
+pearos-magiclamp
+pearos-muternvf
+pearos-notch
+pearos-notes
+pafari
+pearos-settings
+system-settings
+pearos-todo
+pearos-welcome
+pearos-window-borders
+pearos-window-tinter
+pearos-zshconfig
+hyprvisor
+system-overview
+neofetch

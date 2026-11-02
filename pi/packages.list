@@ -1,0 +1,109 @@
+# pearOS Raspberry Pi image (arm64) -- Debian packages, one per line.
+# Derived from profiles/pear/packages.list (the amd64 live ISO), minus everything
+# that only makes sense on an x86 live ISO (live-boot, Calamares, syslinux/GRUB
+# for BIOS, x86 microcode/GPU firmware) and minus the big optional apps, to keep
+# the compressed image under GitHub's 2 GiB release-asset limit.
+# The pearOS packages themselves come from apt.pearos.xyz (see build-pi-image.sh).
+
+# --- system base ---
+systemd-sysv
+udev
+apt
+iproute2
+netbase
+procps
+bash-completion
+sudo
+passwd
+adduser
+initramfs-tools
+libpam-modules
+libpam-runtime
+libpam-systemd
+libnss-systemd
+util-linux
+dbus
+dbus-user-session
+polkitd
+accountsservice
+zstd
+ca-certificates
+wget
+curl
+unzip
+locales
+nano
+htop
+e2fsprogs
+dosfstools
+parted
+cloud-guest-utils
+libglib2.0-bin
+git
+
+# --- boot: Raspberry Pi firmware path + UEFI fallback (QEMU / UEFI boards) ---
+linux-image-arm64
+raspi-firmware
+grub-efi-arm64-bin
+plymouth
+plymouth-themes
+
+# --- hardware: Wi-Fi/Bluetooth of the Pi 4/5, GPU (v3d/vc4 via Mesa), audio ---
+firmware-brcm80211
+bluez
+bluez-firmware
+rfkill
+alsa-utils
+pipewire-pulse
+pipewire-alsa
+wireplumber
+libgl1-mesa-dri
+libegl-mesa0
+libgbm1
+mesa-vulkan-drivers
+
+# --- desktop (Plasma / Wayland, as on the amd64 build) ---
+network-manager
+sddm
+plasma-desktop
+plasma-workspace
+kwin-wayland
+kscreen
+upower
+powerdevil
+kde-config-gtk-style
+plasma-vault
+plasma-pa
+bluedevil
+plasma-nm
+xdg-desktop-portal-kde
+xdg-desktop-portal
+xdg-user-dirs
+xdg-utils
+breeze-gtk-theme
+xwayland
+qt-style-kvantum
+gvfs
+gvfs-backends
+
+# --- apps the dock / tests use ---
+nautilus
+konsole
+kate
+ark
+gwenview
+
+# --- first-boot assistant (pearOS-installer) ---
+python3-gi
+python3-gi-cairo
+gir1.2-gtk-4.0
+python3-numpy
+qrencode
+zsh
+zsh-autosuggestions
+wtmpdb
+libpam-wtmpdb
+
+# --- needed by the pearOS packages (see PROFILE_COMMON_PACKAGES in profiles/pear/packages.sh) ---
+qml6-module-qtwebengine
+libqt6webenginewidgets6
