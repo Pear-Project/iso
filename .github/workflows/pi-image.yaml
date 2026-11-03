@@ -78,7 +78,7 @@ jobs:
           # 5-10x slower than on KVM, hence --slow 4 and the long timeouts.
           python3 harness/tests/boot-test.py out/pearOS-Goldwing-Pi-*-arm64.img.xz --distro debian-pi \
             --full-install --upgrade-reboot --slow ${{ inputs.runner == 'pi5' && '1' || '4' }} --duration 2400 --reboot-wait 1500 \
-            --pacman-timeout 3600 --interval 20 --memory 6G \
+            --pacman-timeout 3600 --interval 20 --memory ${{ inputs.runner == 'pi5' && '2560M' || '6G' }} \
             --disk-dir "$RUNNER_TEMP/pi-disk" --workdir "$GITHUB_WORKSPACE" --update-reference
 
       - name: Upload test screenshots
@@ -127,3 +127,11 @@ jobs:
           git diff --cached --quiet && exit 0
           git commit -m "Pi test sequence from run ${GITHUB_RUN_ID} [skip ci]"
           git push origin "${GITHUB_REF_NAME}"
+
+      # A self-hosted machine keeps its disk between runs (32 GB SD card): clean up.
+      - name: Clean the work directories (self-hosted Pi 5)
+        if: always() && inputs.runner == 'pi5'
+        run: |
+          sudo rm -rf "$RUNNER_TEMP/pi-work" "$RUNNER_TEMP/pi-disk" "$GITHUB_WORKSPACE/out" "$GITHUB_WORKSPACE/seq"
+          sudo docker system prune -af >/dev/null 2>&1 || true
+          df -h / | tail -1

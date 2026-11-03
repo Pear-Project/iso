@@ -22,7 +22,14 @@ usermod -aG docker,kvm ci
 echo 'ci ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/90-ci && chmod 0440 /etc/sudoers.d/90-ci
 
 if [ -e /dev/kvm ]; then echo "KVM: /dev/kvm present"; else echo "WARNING: no /dev/kvm (is this a Pi 5 on a 64-bit kernel?)"; fi
-free -g | sed -n 2p; df -h / | tail -1   # the build + test need ~25 GB free and 8 GB RAM is comfortable
+# 4 GB RAM Pi 5: add swap (the QEMU guest gets 2.5 GB). Prefer a USB stick over the SD card:
+#   SWAP_FILE=/mnt/usb/swapfile sudo -E bash ci-runner-setup.sh ...
+SWAP_FILE="${SWAP_FILE:-/var/swapfile}"
+if ! swapon --show | grep -q .; then
+    fallocate -l 4G "$SWAP_FILE" && chmod 600 "$SWAP_FILE" && mkswap "$SWAP_FILE" >/dev/null && swapon "$SWAP_FILE"
+    grep -q "$SWAP_FILE" /etc/fstab || echo "$SWAP_FILE none swap sw 0 0" >> /etc/fstab
+fi
+free -g | sed -n 2p; df -h / | tail -1   # the build + test peak at ~22 GB of disk; 4 GB RAM works with the swap above
 
 # The runner itself (latest release for linux arm64).
 sudo -u ci bash -euxc '
