@@ -67,6 +67,7 @@ PKGS=$(grep -v '^#' "$HERE/packages.list" | grep -v '^$' | paste -sd, -)
 mmdebstrap --architecture=arm64 --variant=minbase \
     --components="main contrib non-free non-free-firmware" \
     --aptopt='APT::Install-Recommends "false"' \
+    --dpkgopt='force-confold' \
     --setup-hook='mkdir -p "$1/etc/default" "$1/boot/firmware"; printf "ROOTPART=LABEL=PEAR_ROOT\n" > "$1/etc/default/raspi-firmware"' \
     --include="$PKGS" \
     --customize-hook="$HERE/customize-rootfs.sh \"\$1\"" \
