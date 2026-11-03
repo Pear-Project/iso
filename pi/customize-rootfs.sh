@@ -48,6 +48,12 @@ in_chroot "cp -dnRT --preserve=mode,timestamps,links -- /etc/skel/. /home/defaul
 # the real account keeps the normal lock-on-idle defaults.
 install -d -o 1000 -g 1000 "$R/home/default/.config" 2>/dev/null || install -d "$R/home/default/.config"
 printf '[Daemon]\nAutolock=false\nLockOnResume=false\n' > "$R/home/default/.config/kscreenlockerrc"
+# ...nor blank the display or suspend while it waits (an emulated first boot idles for minutes)
+for prof in AC Battery LowBattery; do
+    printf '[%s][Display]\nDimDisplayWhenIdle=false\nTurnOffDisplayWhenIdle=false\n\n[%s][SuspendAndShutdown]\nAutoSuspendAction=0\n\n' "$prof" "$prof"
+done > "$R/home/default/.config/powermanagementprofilesrc"
+# The wizard builds ~23 pages that each decode + blur the wallpaper: do it once (identical result)
+cat "$HERE/patches/installer-background-cache.py" >> "$R/usr/share/pearOS-installer/post-install/gtkapp/background.py"
 in_chroot "chown -R default:default /home/default/.config"
 echo 'default ALL=(ALL:ALL) NOPASSWD: ALL' > "$R/etc/sudoers.d/010-pearos-default-nopasswd"
 chmod 0440 "$R/etc/sudoers.d/010-pearos-default-nopasswd"
