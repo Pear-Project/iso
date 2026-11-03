@@ -38,9 +38,17 @@ Categories=Utility;
 Exec=bash /usr/local/bin/bin_post
 Terminal=false
 EOF
+# The Welcome window belongs to the live session; the assistant must be the only thing the person sees.
+rm -f "$R/etc/skel/.config/autostart/welcome.desktop"
 # Temporary account the assistant runs as; it creates the real user and removes this one.
 in_chroot "useradd -m -s /bin/bash default && echo 'default:pearos' | chpasswd && usermod -aG sudo,audio,video,plugdev,netdev,dialout,bluetooth default || usermod -aG sudo,audio,video,plugdev,netdev,dialout default"
 in_chroot "cp -dnRT --preserve=mode,timestamps,links -- /etc/skel/. /home/default && chown -hR default:default /home/default"
+# The temporary account must never lock the screen while the assistant waits for the person
+# (a locked screen has no way back: the account has no password anyone knows). Only /home/default,
+# the real account keeps the normal lock-on-idle defaults.
+install -d -o 1000 -g 1000 "$R/home/default/.config" 2>/dev/null || install -d "$R/home/default/.config"
+printf '[Daemon]\nAutolock=false\nLockOnResume=false\n' > "$R/home/default/.config/kscreenlockerrc"
+in_chroot "chown -R default:default /home/default/.config"
 echo 'default ALL=(ALL:ALL) NOPASSWD: ALL' > "$R/etc/sudoers.d/010-pearos-default-nopasswd"
 chmod 0440 "$R/etc/sudoers.d/010-pearos-default-nopasswd"
 
