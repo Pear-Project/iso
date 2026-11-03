@@ -1,0 +1,145 @@
+{
+  "passed": true,
+  "verdict": "booted, installed pearOS and booted it ✅",
+  "iso": "pearOS-Goldwing-Beta-2026.11-x86_64.iso",
+  "failure": null,
+  "ui": {
+    "top": 96.78645833333333,
+    "dock": 100.0,
+    "tol": 16,
+    "threshold": 90.0,
+    "frame": 11,
+    "ok": true,
+    "verdict": "menu bar + dock look as expected ✅"
+  },
+  "frames": 84,
+  "booted": true,
+  "installer": true,
+  "install": {
+    "ran": true,
+    "finished": true,
+    "booted": true,
+    "minutes": 5.2
+  },
+  "score": {
+    "boot": 100,
+    "ui": 100,
+    "install": 100,
+    "usability": 100,
+    "checks": {
+      "login + desktop": {
+        "ok": true,
+        "detail": ""
+      },
+      "UI sanity (installed)": {
+        "ok": true,
+        "detail": "top 99% / dock 100%"
+      },
+      "Konsole opens": {
+        "ok": true,
+        "detail": ""
+      },
+      "os-release says pearOS": {
+        "ok": true,
+        "detail": ""
+      },
+      "sudo apt-get dist-upgrade": {
+        "ok": true,
+        "detail": ""
+      },
+      "Pafari opens": {
+        "ok": true,
+        "detail": ""
+      },
+      "Calculator opens": {
+        "ok": true,
+        "detail": ""
+      },
+      "Notes opens": {
+        "ok": true,
+        "detail": ""
+      },
+      "Finder opens": {
+        "ok": true,
+        "detail": ""
+      },
+      "Kate opens": {
+        "ok": true,
+        "detail": ""
+      }
+    },
+    "total": 100
+  },
+  "interval": 10,
+  "desktop_frame": 11,
+  "notes": {
+    "11": "desktop ready, then clicked Install pearOS in Welcome",
+    "12": "pearOS installer loading",
+    "13": "pearOS installer loading",
+    "14": "Language screen, then selected English",
+    "15": "Language screen, then clicked Next",
+    "16": "Recovery screen, then selected Install pearOS Goldwing",
+    "17": "Recovery screen, then clicked Continue",
+    "18": "Installer welcome, then clicked Continue",
+    "19": "Terms and Conditions, then clicked Continue",
+    "27": "Calamares",
+    "28": "Calamares: Welcome, clicked Next",
+    "29": "Calamares: Location, clicked Next",
+    "30": "Calamares: Keyboard, clicked Next",
+    "31": "Calamares: Partitions, selected Erase disk",
+    "32": "Calamares: Partitions, clicked Next",
+    "33": "Calamares: Summary, clicked Install",
+    "34": "Calamares: installing (2 min)",
+    "35": "Calamares: installing (4 min)",
+    "36": "Calamares: installation finished",
+    "37": "Installed system: first boot",
+    "38": "Installed system: first boot",
+    "39": "Installed system: first boot",
+    "40": "Installed system: first boot",
+    "41": "Installed system: first boot",
+    "42": "Installed system: reached the login screen / desktop",
+    "43": "First boot: country",
+    "44": "First boot: transfer",
+    "45": "First boot: languages",
+    "46": "First boot: accessibility",
+    "47": "First boot: data & privacy",
+    "48": "First boot: PearID",
+    "49": "First boot: create account",
+    "50": "First boot: account filled in",
+    "51": "First boot: terms",
+    "52": "First boot: location services",
+    "53": "First boot: time zone",
+    "54": "First boot: analytics",
+    "55": "First boot: screen time",
+    "56": "First boot: Piri",
+    "57": "First boot: look",
+    "58": "First boot: updates",
+    "59": "First boot: ready",
+    "60": "First boot: applying settings",
+    "61": "Login screen",
+    "62": "Login screen",
+    "63": "Login screen",
+    "64": "Login screen",
+    "65": "Login screen",
+    "66": "Login screen",
+    "67": "Login screen",
+    "68": "Login screen",
+    "69": "Login screen",
+    "70": "Login screen",
+    "71": "Logging in",
+    "72": "Logging in",
+    "73": "Logging in",
+    "74": "Logging in",
+    "75": "Logging in",
+    "76": "Installed system: desktop",
+    "77": "Konsole opened",
+    "78": "Konsole: cat /etc/os-release",
+    "79": "Konsole: apt-get dist-upgrade succeeded",
+    "80": "App: Pafari opened",
+    "81": "App: Calculator opened",
+    "82": "App: Notes opened",
+    "83": "App: Finder opened",
+    "84": "App: Kate opened"
+  },
+  "built": "2026-11-03T00:50:57Z"
+}
