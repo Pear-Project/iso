@@ -12,7 +12,7 @@ on:
         default: true
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-image:
@@ -90,3 +90,35 @@ jobs:
           name: pi-ui-reference
           path: harness/tests/ui-reference/debian-pi/
           if-no-files-found: ignore
+
+      # The site's Raspberry Pi page and the repo show the boot/first-boot/usability sequence.
+      # Only web-sized copies are committed (the full PNG set is in the pi-boot-sequence artifact),
+      # and nothing here publishes the image itself: no R2 upload, no announcement.
+      - name: Publish the test sequence (screenshots + result, not the image)
+        if: always() && inputs.boot_test && hashFiles('seq/result.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          clonedir=$(mktemp -d)
+          git clone --depth 1 --branch "${GITHUB_REF_NAME}" \
+            "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$clonedir"
+          cd "$clonedir"
+          rm -rf seq-pi && mkdir -p seq-pi/web
+          cp "$GITHUB_WORKSPACE/seq/result.json" seq-pi/
+          for f in "$GITHUB_WORKSPACE"/seq/[0-9]*.png; do
+            ffmpeg -loglevel error -y -i "$f" -vf scale=960:-1 -quality 70 \
+              "seq-pi/web/$(basename "${f%.png}").webp" || true
+          done
+          # Same README the harness writes, with the images pointing at the web copies.
+          if [ -f "$GITHUB_WORKSPACE/README.md" ]; then
+            { echo "# Raspberry Pi image: boot test"; echo
+              sed -n '/<!-- boot-seq:begin -->/,/<!-- boot-seq:end -->/p;/<!-- ui-sanity:begin -->/,/<!-- ui-sanity:end -->/p' "$GITHUB_WORKSPACE/README.md" \
+                | sed 's#seq/\([0-9]*\)\.png#web/\1.webp#g'; } > seq-pi/README.md
+          fi
+          grep -q "seq-pi/README.md" README.md || printf '\n## Raspberry Pi (arm64)\n\nLatest boot / first-boot / usability test sequence: [seq-pi/README.md](seq-pi/README.md)\n' >> README.md
+          git config user.name "pearOS build bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A seq-pi README.md
+          git diff --cached --quiet && exit 0
+          git commit -m "Pi test sequence from run ${GITHUB_RUN_ID} [skip ci]"
+          git push origin "${GITHUB_REF_NAME}"
