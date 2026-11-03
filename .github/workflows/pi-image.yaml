@@ -10,13 +10,18 @@ on:
         description: "Boot the image in QEMU and take screenshots"
         type: boolean
         default: true
+      runner:
+        description: "github = hosted arm64 runner (QEMU emulated, ~95 min); pi5 = the self-hosted Raspberry Pi 5 (QEMU with KVM, see pi/ci-runner-setup.sh)"
+        type: choice
+        options: [github, pi5]
+        default: github
 
 permissions:
   contents: write
 
 jobs:
   build-image:
-    runs-on: ubuntu-24.04-arm
+    runs-on: ${{ inputs.runner == 'pi5' && fromJSON('["self-hosted","linux","ARM64","pi5"]') || 'ubuntu-24.04-arm' }}
     timeout-minutes: 340
     steps:
       - name: Checking out source code
@@ -30,7 +35,7 @@ jobs:
 
       - name: Free disk space
         run: |
-          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache/CodeQL || true
+          [ "${{ inputs.runner }}" = pi5 ] || sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache/CodeQL || true
           df -h /
           ls -l /dev/kvm || echo "no /dev/kvm"
 
@@ -72,7 +77,7 @@ jobs:
           # The hosted arm runner has no /dev/kvm: QEMU runs the arm64 guest emulated, roughly
           # 5-10x slower than on KVM, hence --slow 4 and the long timeouts.
           python3 harness/tests/boot-test.py out/pearOS-Goldwing-Pi-*-arm64.img.xz --distro debian-pi \
-            --full-install --upgrade-reboot --slow 4 --duration 2400 --reboot-wait 1500 \
+            --full-install --upgrade-reboot --slow ${{ inputs.runner == 'pi5' && '1' || '4' }} --duration 2400 --reboot-wait 1500 \
             --pacman-timeout 3600 --interval 20 --memory 6G \
             --disk-dir "$RUNNER_TEMP/pi-disk" --workdir "$GITHUB_WORKSPACE" --update-reference
 
