@@ -249,3 +249,7 @@ Current frame: ![desktop](seq/11.png)
 This project is released under the GNU Pubilc License v3 or later
 
 Copyright: Alexandru Balan @ Pear Software and Services S.R.L. based in Romania, Dacia Boulevard 133, floor D, Sector 2, Bucharest C.I.F.: 50888207
+
+## Raspberry Pi (arm64)
+
+Latest boot / first-boot / usability test sequence: [seq-pi/README.md](seq-pi/README.md)
