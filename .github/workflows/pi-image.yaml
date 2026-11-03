@@ -17,7 +17,7 @@ permissions:
 jobs:
   build-image:
     runs-on: ubuntu-24.04-arm
-    timeout-minutes: 180
+    timeout-minutes: 340
     steps:
       - name: Checking out source code
         uses: actions/checkout@v4
@@ -37,7 +37,7 @@ jobs:
       - name: Host tools
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq rsync dosfstools e2fsprogs fdisk xz-utils qemu-system-arm qemu-efi-aarch64
+          sudo apt-get install -y -qq rsync dosfstools e2fsprogs fdisk xz-utils qemu-system-arm qemu-efi-aarch64 tesseract-ocr ffmpeg
 
       - name: Stage 1 - rootfs (mmdebstrap in a debian:forky container)
         run: |
@@ -63,18 +63,30 @@ jobs:
           retention-days: 3
           compression-level: 0
 
-      - name: Boot in QEMU (screenshots)
+      - name: Boot + first-boot setup + usability (QEMU, no KVM: emulated, so slow)
+        id: boottest
         if: inputs.boot_test
         continue-on-error: true
         run: |
           sudo rm -rf "$RUNNER_TEMP/pi-work/rootfs"
-          xz -dc out/pearOS-Goldwing-Pi-*-arm64.img.xz > "$RUNNER_TEMP/pi.img"
-          df -h /
-          python3 pi/qemu-smoke.py "$RUNNER_TEMP/pi.img" --harness harness/tests/boot-test.py --out "$GITHUB_WORKSPACE/pi-boot" --duration 480
+          # The hosted arm runner has no /dev/kvm: QEMU runs the arm64 guest emulated, roughly
+          # 5-10x slower than on KVM, hence --slow 4 and the long timeouts.
+          python3 harness/tests/boot-test.py out/pearOS-Goldwing-Pi-*-arm64.img.xz --distro debian-pi \
+            --full-install --upgrade-reboot --slow 4 --duration 2400 --reboot-wait 1500 \
+            --pacman-timeout 3600 --interval 20 --memory 6G \
+            --disk-dir "$RUNNER_TEMP/pi-disk" --workdir "$GITHUB_WORKSPACE" --update-reference
 
-      - name: Upload boot screenshots
+      - name: Upload test screenshots
         if: always() && inputs.boot_test
         uses: actions/upload-artifact@v4
         with:
           name: pi-boot-sequence
-          path: pi-boot/
+          path: seq/
+
+      - name: Keep the UI reference this run produced (review it before committing)
+        if: always() && inputs.boot_test
+        uses: actions/upload-artifact@v4
+        with:
+          name: pi-ui-reference
+          path: harness/tests/ui-reference/debian-pi/
+          if-no-files-found: ignore
