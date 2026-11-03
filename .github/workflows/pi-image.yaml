@@ -63,7 +63,7 @@ jobs:
           retention-days: 3
           compression-level: 0
 
-      - name: Boot + first-boot setup + usability (QEMU, no KVM: emulated, so slow)
+      - name: Boot, first-boot setup and usability (QEMU, emulated - no KVM here)
         id: boottest
         if: inputs.boot_test
         continue-on-error: true
