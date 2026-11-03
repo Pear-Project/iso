@@ -88,7 +88,9 @@ start=1050624, type=83
 EOF
 LOOP=$(losetup -fP --show "$IMG")
 mkfs.vfat -F 32 -n PEAR_BOOT "${LOOP}p1" >/dev/null
-mkfs.ext4 -q -L PEAR_ROOT -E lazy_itable_init=1 "${LOOP}p2"
+# Plasma ships a huge number of tiny files: the default (1 inode per 16 KiB) runs out of
+# inodes long before blocks. 1 per 8 KiB, and only 1% reserved (this is a single-user system).
+mkfs.ext4 -q -L PEAR_ROOT -i 8192 -m 1 -E lazy_itable_init=1 "${LOOP}p2"
 mkdir -p "$MNT"
 mount "${LOOP}p2" "$MNT"
 mkdir -p "$MNT/boot/firmware"
@@ -111,6 +113,7 @@ chroot "$MNT" /bin/bash -c '
     update-grub
 '
 sync
+echo "root filesystem after the copy:"; df -h "$MNT" | tail -1; df -i "$MNT" | tail -1
 echo "firmware partition:"; ls "$MNT/boot/firmware" | head -30
 for m in "$MNT/boot/firmware" "$MNT/dev/pts" "$MNT/dev" "$MNT/proc" "$MNT/sys" "$MNT"; do umount "$m"; done
 e2fsck -fy "${LOOP}p2" >/dev/null || true
