@@ -13,7 +13,7 @@
 # 1. mmdebstrap: Debian <branch> arm64 rootfs + package list (packages.list)
 # 2. customize-rootfs.sh: pearOS packages, first-boot assistant, SDDM, grow-on-first-boot
 # 3. disk image: p1 FAT32 PEAR_BOOT (Pi firmware + kernel + EFI fallback) + p2 ext4 PEAR_ROOT
-# 4. xz -> pearOS-Goldwing-Pi-<version>-arm64.img.xz (target: under 2 GiB, GitHub's release-asset limit)
+# 4. xz -> pearOS-Goldwing-Beta-<version>-arm64.img.xz (target: under 2 GiB, GitHub's release-asset limit)
 #
 # The image boots two ways from the same FAT partition: the Raspberry Pi firmware
 # (config.txt/kernel/initrd placed by the raspi-firmware package) and, for QEMU and
@@ -43,7 +43,7 @@ done
 case "$STAGE" in rootfs|image|all) ;; *) echo "bad --stage: $STAGE" >&2; exit 2 ;; esac
 [ "$(dpkg --print-architecture)" = "arm64" ] || echo "WARNING: building arm64 on $(dpkg --print-architecture) (needs qemu-user binfmt, slow)"
 
-NAME="pearOS-Goldwing-Pi-$VERSION-arm64"
+NAME="pearOS-Goldwing-Beta-$VERSION-arm64"
 ROOTFS="$WORK/rootfs"
 IMG="$WORK/$NAME.img"
 MNT="$WORK/mnt"

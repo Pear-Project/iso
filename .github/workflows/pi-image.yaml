@@ -2,7 +2,8 @@ name: Build pearOS Raspberry Pi image
 
 # Builds the arm64 disk image (Debian forky + pearOS packages) on a GitHub-hosted
 # arm64 runner and boots it in QEMU (aarch64 'virt' + UEFI) to see how far it gets.
-# Manual only for now.
+# Manual only. With publish=true and a passing test it also uploads the image to R2 (same
+# naming as the amd64 Goldwing ISO, with arm64), updates the website and announces on Discord.
 on:
   workflow_dispatch:
     inputs:
@@ -10,6 +11,10 @@ on:
         description: "Boot the image in QEMU and take screenshots"
         type: boolean
         default: true
+      publish:
+        description: "Publish to R2 + website + Discord if the test passes (official release only)"
+        type: boolean
+        default: false
       runner:
         description: "github = hosted arm64 runner (QEMU emulated, ~95 min); pi5 = the self-hosted Raspberry Pi 5 (QEMU with KVM, see pi/ci-runner-setup.sh)"
         type: choice
@@ -76,7 +81,7 @@ jobs:
           sudo rm -rf "$RUNNER_TEMP/pi-work/rootfs"
           # The hosted arm runner has no /dev/kvm: QEMU runs the arm64 guest emulated, roughly
           # 5-10x slower than on KVM, hence --slow 4 and the long timeouts.
-          python3 harness/tests/boot-test.py out/pearOS-Goldwing-Pi-*-arm64.img.xz --distro debian-pi \
+          python3 harness/tests/boot-test.py out/pearOS-Goldwing-Beta-*-arm64.img.xz --distro debian-pi \
             --full-install --upgrade-reboot --slow ${{ inputs.runner == 'pi5' && '1' || '4' }} --duration 2400 --reboot-wait 1500 \
             --pacman-timeout 3600 --interval 20 --memory ${{ inputs.runner == 'pi5' && '2560M' || '6G' }} \
             --disk-dir "$RUNNER_TEMP/pi-disk" --workdir "$GITHUB_WORKSPACE" --update-reference
@@ -127,6 +132,99 @@ jobs:
           git diff --cached --quiet && exit 0
           git commit -m "Pi test sequence from run ${GITHUB_RUN_ID} [skip ci]"
           for i in 1 2 3 4; do git push origin "${GITHUB_REF_NAME}" && break; sleep $((i*20)); git pull -q --rebase origin "${GITHUB_REF_NAME}" || true; done
+
+      # ---- Official release: only when asked for (publish=true) and the test passed ----
+      - name: Check the test result before publishing
+        id: gate
+        if: inputs.publish && steps.boottest.outcome == 'success'
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          r = json.load(open("seq/result.json"))
+          ok = bool(r.get("passed")) and r["score"]["total"] >= 90
+          print("ok=" + ("true" if ok else "false"))
+          print("score=" + str(r["score"]["total"]))
+          PY
+
+      - name: Configure rclone (R2)
+        if: steps.gate.outputs.ok == 'true'
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ENDPOINT_URL: ${{ secrets.R2_ENDPOINT_URL }}
+        run: |
+          curl -fsSL https://rclone.org/install.sh | sudo bash
+          mkdir -p "${HOME}/.config/rclone"
+          cat > "${HOME}/.config/rclone/rclone.conf" <<EOF
+          [r2-pearos]
+          type = s3
+          provider = Cloudflare
+          access_key_id = ${R2_ACCESS_KEY_ID}
+          secret_access_key = ${R2_SECRET_ACCESS_KEY}
+          endpoint = ${R2_ENDPOINT_URL}
+          acl = private
+          EOF
+
+      - name: Uploading to R2 (pearos-cdn/iso)
+        id: r2
+        if: steps.gate.outputs.ok == 'true'
+        run: |
+          IMG=$(ls out/pearOS-Goldwing-Beta-*-arm64.img.xz | head -n1)
+          echo "Uploading $IMG ($(du -h "$IMG" | cut -f1)) to pearos-cdn/iso"
+          rclone copy "$IMG" "r2-pearos:pearos-cdn/iso/" --progress
+          rclone copy "$IMG.sha256" "r2-pearos:pearos-cdn/iso/" --progress
+          echo "name=$(basename "$IMG")" >> "$GITHUB_OUTPUT"
+          echo "size=$(stat -c%s "$IMG")" >> "$GITHUB_OUTPUT"
+          echo "sha=$(cut -d' ' -f1 "$IMG.sha256")" >> "$GITHUB_OUTPUT"
+
+      - name: Update pearOS website (Pear-Project/web)
+        if: steps.r2.outcome == 'success'
+        env:
+          WEB_REPO_PAT: ${{ secrets.WEB_REPO_PAT }}
+          NAME: ${{ steps.r2.outputs.name }}
+          SIZE: ${{ steps.r2.outputs.size }}
+          SHA: ${{ steps.r2.outputs.sha }}
+        run: |
+          SIZE_HUMAN=$(awk -v b="$SIZE" 'BEGIN{printf "%.1f GB", b/1000000000}')
+          clonedir=$(mktemp -d)
+          git clone --depth 1 "https://x-access-token:${WEB_REPO_PAT}@github.com/Pear-Project/web.git" "$clonedir"
+          cd "$clonedir"
+          F=assets/data/aarch64-versions.json
+          jq --arg size "$SIZE_HUMAN" --arg sha "$SHA" --arg dl "https://iso.pearos.xyz/iso/${NAME}" \
+            'map(if .name == "Latest (Raspberry Pi 4 / 5)" then .status="Public Beta" | .size=$size | .sha256=$sha | .download=$dl else . end)' \
+            "$F" > "$F.new" && mv "$F.new" "$F"
+          git config user.name "pearOS build bot"
+          git config user.email "actions@users.noreply.github.com"
+          git diff --quiet -- "$F" && exit 0
+          git add "$F"
+          git commit -m "Update Raspberry Pi download info: ${NAME}"
+          for i in 1 2 3; do git push origin HEAD:main && break; sleep 15; git pull -q --rebase origin main; done
+
+      - name: Announce the release on Discord
+        if: steps.r2.outcome == 'success'
+        continue-on-error: true
+        uses: sarisia/actions-status-discord@v1.16.0
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          nodetail: true
+          noprefix: true
+          title: "pearOS Goldwing for Raspberry Pi (arm64) is out!"
+          description: |
+            The first pearOS image for the Raspberry Pi 4 / 5 (Debian base, arm64) is available as a **public beta**.
+
+            **Download:** https://pearos.xyz/aarch64/
+            **SHA256:** `${{ steps.r2.outputs.sha }}`
+            **Tested:** boots, runs the setup assistant, logs in and runs apps in an emulated arm64 machine (score ${{ steps.gate.outputs.score }}/100). It has not been tried on real Raspberry Pi hardware yet, so please report what you see.
+
+            **Bug reports:** https://github.com/Pear-Project/iso/issues
+          color: 0xf5a623
+          username: pearOS Releases
+
+      - name: Say why nothing was published
+        if: inputs.publish && steps.gate.outputs.ok != 'true'
+        run: |
+          echo "::error::The test did not pass (or scored below 90), nothing was published."
+          exit 1
 
       # A self-hosted machine keeps its disk between runs (32 GB SD card): clean up.
       - name: Clean the work directories (self-hosted Pi 5)
