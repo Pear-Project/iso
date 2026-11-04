@@ -108,3 +108,8 @@ libpam-wtmpdb
 # --- needed by the pearOS packages (see PROFILE_COMMON_PACKAGES in profiles/pear/packages.sh) ---
 qml6-module-qtwebengine
 libqt6webenginewidgets6
+
+# dock launchers of the pearOS layout (Maps, Music, KDE Connect): without them the dock shows "?" icons
+gnome-maps
+elisa
+kdeconnect
