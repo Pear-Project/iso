@@ -4,14 +4,14 @@
 
 Result: **booted, installed pearOS and booted it ✅**  
 
-**Success score: 90/100**
+**Success score: 98/100**
 
 | Test | Score |
 |---|---|
 | Boot | 100/100 |
 | UI sanity | 100/100 |
 | Installable | 100/100 |
-| Usability | 62/100 |
+| Usability | 92/100 |
 
 Usability checks:
 
@@ -20,16 +20,16 @@ Usability checks:
 | login + desktop | ✅  |
 | UI sanity (installed) | ✅ top 100% / dock 100% |
 | Konsole opens | ✅  |
-| os-release says pearOS | ❌  |
+| os-release says pearOS | ✅  |
 | sudo apt-get dist-upgrade | ✅  |
-| Pafari opens | ❌ menu bar says 'Konsole File Edit View Bookmar Bitings H' |
+| Pafari opens | ✅  |
 | Calculator opens | ✅  |
-| Notes opens | ❌ the screen did not change |
-| Finder opens | ❌ the screen did not change |
+| Notes opens | ✅  |
+| Finder opens | ✅  |
 | Kate opens | ✅  |
 | after update: login screen | ✅  |
 | after update: desktop | ✅  |
-| UI sanity (after update) | ❌ top 88% / dock 45% |
+| UI sanity (after update) | ❌ top 88% / dock 68% |
 
 One screenshot every 20s.
 
@@ -58,8 +58,8 @@ One screenshot every 20s.
 23. `460s` — ![boot 23](web/23.webp)
 24. `480s` — ![boot 24](web/24.webp)
 25. `500s` — ![boot 25](web/25.webp)
-26. `520s` — desktop ready — ![boot 26](web/26.webp)
-27. `540s` — Waiting for the setup assistant — ![boot 27](web/27.webp)
+26. `520s` — ![boot 26](web/26.webp)
+27. `540s` — desktop ready — ![boot 27](web/27.webp)
 28. `560s` — Waiting for the setup assistant — ![boot 28](web/28.webp)
 29. `580s` — Waiting for the setup assistant — ![boot 29](web/29.webp)
 30. `600s` — Waiting for the setup assistant — ![boot 30](web/30.webp)
@@ -298,26 +298,26 @@ One screenshot every 20s.
 263. `5260s` — Waiting for the setup assistant — ![boot 263](web/263.webp)
 264. `5280s` — Waiting for the setup assistant — ![boot 264](web/264.webp)
 265. `5300s` — Waiting for the setup assistant — ![boot 265](web/265.webp)
-266. `5320s` — First boot: setup assistant ready — ![boot 266](web/266.webp)
-267. `5340s` — First boot: country — ![boot 267](web/267.webp)
-268. `5360s` — First boot: transfer — ![boot 268](web/268.webp)
-269. `5380s` — First boot: languages — ![boot 269](web/269.webp)
-270. `5400s` — First boot: accessibility — ![boot 270](web/270.webp)
-271. `5420s` — First boot: data & privacy — ![boot 271](web/271.webp)
-272. `5440s` — First boot: PearID — ![boot 272](web/272.webp)
-273. `5460s` — First boot: create account — ![boot 273](web/273.webp)
-274. `5480s` — First boot: account filled in — ![boot 274](web/274.webp)
-275. `5500s` — First boot: terms — ![boot 275](web/275.webp)
-276. `5520s` — First boot: location services — ![boot 276](web/276.webp)
-277. `5540s` — First boot: time zone — ![boot 277](web/277.webp)
-278. `5560s` — First boot: analytics — ![boot 278](web/278.webp)
-279. `5580s` — First boot: screen time — ![boot 279](web/279.webp)
-280. `5600s` — First boot: Piri — ![boot 280](web/280.webp)
-281. `5620s` — First boot: look — ![boot 281](web/281.webp)
-282. `5640s` — First boot: updates — ![boot 282](web/282.webp)
-283. `5660s` — First boot: ready — ![boot 283](web/283.webp)
-284. `5680s` — First boot: applying settings — ![boot 284](web/284.webp)
-285. `5700s` — Setup assistant: applying settings — ![boot 285](web/285.webp)
+266. `5320s` — Waiting for the setup assistant — ![boot 266](web/266.webp)
+267. `5340s` — First boot: setup assistant ready — ![boot 267](web/267.webp)
+268. `5360s` — First boot: country — ![boot 268](web/268.webp)
+269. `5380s` — First boot: transfer — ![boot 269](web/269.webp)
+270. `5400s` — First boot: languages — ![boot 270](web/270.webp)
+271. `5420s` — First boot: accessibility — ![boot 271](web/271.webp)
+272. `5440s` — First boot: data & privacy — ![boot 272](web/272.webp)
+273. `5460s` — First boot: PearID — ![boot 273](web/273.webp)
+274. `5480s` — First boot: create account — ![boot 274](web/274.webp)
+275. `5500s` — First boot: account filled in — ![boot 275](web/275.webp)
+276. `5520s` — First boot: terms — ![boot 276](web/276.webp)
+277. `5540s` — First boot: location services — ![boot 277](web/277.webp)
+278. `5560s` — First boot: time zone — ![boot 278](web/278.webp)
+279. `5580s` — First boot: analytics — ![boot 279](web/279.webp)
+280. `5600s` — First boot: screen time — ![boot 280](web/280.webp)
+281. `5620s` — First boot: Piri — ![boot 281](web/281.webp)
+282. `5640s` — First boot: look — ![boot 282](web/282.webp)
+283. `5660s` — First boot: updates — ![boot 283](web/283.webp)
+284. `5680s` — First boot: ready — ![boot 284](web/284.webp)
+285. `5700s` — First boot: applying settings — ![boot 285](web/285.webp)
 286. `5720s` — Setup assistant: applying settings — ![boot 286](web/286.webp)
 287. `5740s` — Setup assistant: applying settings — ![boot 287](web/287.webp)
 288. `5760s` — Setup assistant: applying settings — ![boot 288](web/288.webp)
@@ -377,28 +377,28 @@ One screenshot every 20s.
 342. `6840s` — Setup assistant: applying settings — ![boot 342](web/342.webp)
 343. `6860s` — Setup assistant: applying settings — ![boot 343](web/343.webp)
 344. `6880s` — Setup assistant: applying settings — ![boot 344](web/344.webp)
-345. `6900s` — Login screen — ![boot 345](web/345.webp)
-346. `6920s` — Login screen — ![boot 346](web/346.webp)
-347. `6940s` — Login screen — ![boot 347](web/347.webp)
-348. `6960s` — Login screen — ![boot 348](web/348.webp)
-349. `6980s` — Logging in — ![boot 349](web/349.webp)
-350. `7000s` — Logging in — ![boot 350](web/350.webp)
-351. `7020s` — Logging in — ![boot 351](web/351.webp)
-352. `7040s` — Logging in — ![boot 352](web/352.webp)
-353. `7060s` — Logging in — ![boot 353](web/353.webp)
-354. `7080s` — Logging in — ![boot 354](web/354.webp)
-355. `7100s` — Logging in — ![boot 355](web/355.webp)
-356. `7120s` — Logging in — ![boot 356](web/356.webp)
-357. `7140s` — Logging in — ![boot 357](web/357.webp)
-358. `7160s` — Logging in — ![boot 358](web/358.webp)
-359. `7180s` — Logging in — ![boot 359](web/359.webp)
-360. `7200s` — Logging in — ![boot 360](web/360.webp)
-361. `7220s` — Logging in — ![boot 361](web/361.webp)
-362. `7240s` — Logging in — ![boot 362](web/362.webp)
-363. `7260s` — Logging in — ![boot 363](web/363.webp)
-364. `7280s` — Logging in — ![boot 364](web/364.webp)
-365. `7300s` — Logging in — ![boot 365](web/365.webp)
-366. `7320s` — Logging in — ![boot 366](web/366.webp)
+345. `6900s` — Setup assistant: applying settings — ![boot 345](web/345.webp)
+346. `6920s` — Setup assistant: applying settings — ![boot 346](web/346.webp)
+347. `6940s` — Setup assistant: applying settings — ![boot 347](web/347.webp)
+348. `6960s` — Setup assistant: applying settings — ![boot 348](web/348.webp)
+349. `6980s` — Setup assistant: applying settings — ![boot 349](web/349.webp)
+350. `7000s` — Setup assistant: applying settings — ![boot 350](web/350.webp)
+351. `7020s` — Setup assistant: applying settings — ![boot 351](web/351.webp)
+352. `7040s` — Setup assistant: applying settings — ![boot 352](web/352.webp)
+353. `7060s` — Setup assistant: applying settings — ![boot 353](web/353.webp)
+354. `7080s` — Setup assistant: applying settings — ![boot 354](web/354.webp)
+355. `7100s` — Setup assistant: applying settings — ![boot 355](web/355.webp)
+356. `7120s` — Setup assistant: applying settings — ![boot 356](web/356.webp)
+357. `7140s` — Setup assistant: applying settings — ![boot 357](web/357.webp)
+358. `7160s` — Setup assistant: applying settings — ![boot 358](web/358.webp)
+359. `7180s` — Setup assistant: applying settings — ![boot 359](web/359.webp)
+360. `7200s` — Setup assistant: applying settings — ![boot 360](web/360.webp)
+361. `7220s` — Login screen — ![boot 361](web/361.webp)
+362. `7240s` — Login screen — ![boot 362](web/362.webp)
+363. `7260s` — Login screen — ![boot 363](web/363.webp)
+364. `7280s` — Login screen — ![boot 364](web/364.webp)
+365. `7300s` — Login screen — ![boot 365](web/365.webp)
+366. `7320s` — Login screen — ![boot 366](web/366.webp)
 367. `7340s` — Logging in — ![boot 367](web/367.webp)
 368. `7360s` — Logging in — ![boot 368](web/368.webp)
 369. `7380s` — Logging in — ![boot 369](web/369.webp)
@@ -444,28 +444,56 @@ One screenshot every 20s.
 409. `8180s` — Logging in — ![boot 409](web/409.webp)
 410. `8200s` — Logging in — ![boot 410](web/410.webp)
 411. `8220s` — Logging in — ![boot 411](web/411.webp)
-412. `8240s` — Installed system: desktop — ![boot 412](web/412.webp)
-413. `8260s` — Konsole opened — ![boot 413](web/413.webp)
-414. `8280s` — Konsole: cat /etc/os-release — ![boot 414](web/414.webp)
-415. `8300s` — Konsole: apt-get dist-upgrade succeeded — ![boot 415](web/415.webp)
-416. `8320s` — App: Pafari did NOT open — ![boot 416](web/416.webp)
-417. `8340s` — App: Calculator opened — ![boot 417](web/417.webp)
-418. `8360s` — App: Notes did NOT open — ![boot 418](web/418.webp)
-419. `8380s` — App: Finder did NOT open — ![boot 419](web/419.webp)
-420. `8400s` — App: Kate opened — ![boot 420](web/420.webp)
-421. `8420s` — After the update: rebooting — ![boot 421](web/421.webp)
-422. `8440s` — After the update: rebooting — ![boot 422](web/422.webp)
-423. `8460s` — After the update: rebooting — ![boot 423](web/423.webp)
-424. `8480s` — After the update: rebooting — ![boot 424](web/424.webp)
-425. `8500s` — After the update: rebooting — ![boot 425](web/425.webp)
-426. `8520s` — After the update: login screen — ![boot 426](web/426.webp)
-427. `8540s` — After the update: logging in — ![boot 427](web/427.webp)
-428. `8560s` — After the update: logging in — ![boot 428](web/428.webp)
-429. `8580s` — After the update: logging in — ![boot 429](web/429.webp)
-430. `8600s` — After the update: logging in — ![boot 430](web/430.webp)
-431. `8620s` — After the update: logging in — ![boot 431](web/431.webp)
-432. `8640s` — After the update: logging in — ![boot 432](web/432.webp)
-433. `8660s` — After the update: desktop — ![boot 433](web/433.webp)
+412. `8240s` — Logging in — ![boot 412](web/412.webp)
+413. `8260s` — Logging in — ![boot 413](web/413.webp)
+414. `8280s` — Logging in — ![boot 414](web/414.webp)
+415. `8300s` — Logging in — ![boot 415](web/415.webp)
+416. `8320s` — Logging in — ![boot 416](web/416.webp)
+417. `8340s` — Logging in — ![boot 417](web/417.webp)
+418. `8360s` — Logging in — ![boot 418](web/418.webp)
+419. `8380s` — Logging in — ![boot 419](web/419.webp)
+420. `8400s` — Logging in — ![boot 420](web/420.webp)
+421. `8420s` — Logging in — ![boot 421](web/421.webp)
+422. `8440s` — Logging in — ![boot 422](web/422.webp)
+423. `8460s` — Logging in — ![boot 423](web/423.webp)
+424. `8480s` — Logging in — ![boot 424](web/424.webp)
+425. `8500s` — Logging in — ![boot 425](web/425.webp)
+426. `8520s` — Logging in — ![boot 426](web/426.webp)
+427. `8540s` — Logging in — ![boot 427](web/427.webp)
+428. `8560s` — Logging in — ![boot 428](web/428.webp)
+429. `8580s` — Logging in — ![boot 429](web/429.webp)
+430. `8600s` — Logging in — ![boot 430](web/430.webp)
+431. `8620s` — Logging in — ![boot 431](web/431.webp)
+432. `8640s` — Logging in — ![boot 432](web/432.webp)
+433. `8660s` — Logging in — ![boot 433](web/433.webp)
+434. `8680s` — Logging in — ![boot 434](web/434.webp)
+435. `8700s` — Logging in — ![boot 435](web/435.webp)
+436. `8720s` — Logging in — ![boot 436](web/436.webp)
+437. `8740s` — Installed system: desktop — ![boot 437](web/437.webp)
+438. `8760s` — Konsole opened — ![boot 438](web/438.webp)
+439. `8780s` — Konsole: cat /etc/os-release — ![boot 439](web/439.webp)
+440. `8800s` — ![boot 440](web/440.webp)
+441. `8820s` — Konsole: sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade (running) — ![boot 441](web/441.webp)
+442. `8840s` — Konsole: sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade (running) — ![boot 442](web/442.webp)
+443. `8860s` — Konsole: sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade (running) — ![boot 443](web/443.webp)
+444. `8880s` — Konsole: sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade (running) — ![boot 444](web/444.webp)
+445. `8900s` — Konsole: sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade (running) — ![boot 445](web/445.webp)
+446. `8920s` — Konsole: apt-get dist-upgrade succeeded — ![boot 446](web/446.webp)
+447. `8940s` — App: Pafari opened — ![boot 447](web/447.webp)
+448. `8960s` — App: Calculator opened — ![boot 448](web/448.webp)
+449. `8980s` — App: Notes opened — ![boot 449](web/449.webp)
+450. `9000s` — App: Finder opened — ![boot 450](web/450.webp)
+451. `9020s` — App: Kate opened — ![boot 451](web/451.webp)
+452. `9040s` — After the update: rebooting — ![boot 452](web/452.webp)
+453. `9060s` — After the update: rebooting — ![boot 453](web/453.webp)
+454. `9080s` — After the update: rebooting — ![boot 454](web/454.webp)
+455. `9100s` — After the update: rebooting — ![boot 455](web/455.webp)
+456. `9120s` — After the update: rebooting — ![boot 456](web/456.webp)
+457. `9140s` — After the update: rebooting — ![boot 457](web/457.webp)
+458. `9160s` — After the update: rebooting — ![boot 458](web/458.webp)
+459. `9180s` — After the update: login screen — ![boot 459](web/459.webp)
+460. `9200s` — After the update: logging in — ![boot 460](web/460.webp)
+461. `9220s` — After the update: desktop — ![boot 461](web/461.webp)
 
 <!-- boot-seq:end -->
 <!-- ui-sanity:begin -->
