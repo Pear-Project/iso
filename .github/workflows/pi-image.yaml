@@ -126,7 +126,7 @@ jobs:
           git add -A seq-pi README.md
           git diff --cached --quiet && exit 0
           git commit -m "Pi test sequence from run ${GITHUB_RUN_ID} [skip ci]"
-          git push origin "${GITHUB_REF_NAME}"
+          for i in 1 2 3 4; do git push origin "${GITHUB_REF_NAME}" && break; sleep $((i*20)); git pull -q --rebase origin "${GITHUB_REF_NAME}" || true; done
 
       # A self-hosted machine keeps its disk between runs (32 GB SD card): clean up.
       - name: Clean the work directories (self-hosted Pi 5)
