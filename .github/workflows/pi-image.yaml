@@ -210,11 +210,15 @@ jobs:
           noprefix: true
           title: "pearOS Goldwing for Raspberry Pi (arm64) is out!"
           description: |
-            The first pearOS image for the Raspberry Pi 4 / 5 (Debian base, arm64) is available as a **public beta**.
+            The first pearOS image for the Raspberry Pi 4 / 5 (Debian base, arm64) is available as a **public beta** (Raspberry Pi 4 / 5 / 500).
+
+            **Release notes**
+            - Fixes the boot kernel panic ("Asynchronous SError Interrupt" in pinctrl_brcmstb) on the Raspberry Pi 500 and Pi 5 boards with D0 silicon, reported on r/pearos.
+            - Based on Debian forky, Plasma on Wayland, first-boot setup assistant, root partition grows to fill the card on first boot.
 
             **Download:** https://pearos.xyz/aarch64/
             **SHA256:** `${{ steps.r2.outputs.sha }}`
-            **Tested:** boots, runs the setup assistant, logs in and runs apps in an emulated arm64 machine (score ${{ steps.gate.outputs.score }}/100). It has not been tried on real Raspberry Pi hardware yet, so please report what you see.
+            **Tested:** boots, runs the setup assistant, logs in and runs apps in an emulated arm64 machine (score ${{ steps.gate.outputs.score }}/100). The Pi 500 fix has not been confirmed on real hardware yet, so please report what you see.
 
             **Bug reports:** https://github.com/Pear-Project/iso/issues
           color: 0xf5a623

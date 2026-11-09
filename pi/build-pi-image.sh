@@ -15,6 +15,10 @@
 # 3. disk image: p1 FAT32 PEAR_BOOT (Pi firmware + kernel + EFI fallback) + p2 ext4 PEAR_ROOT
 # 4. xz -> pearOS-Goldwing-Beta-<version>-arm64.img.xz (target: under 2 GiB, GitHub's release-asset limit)
 #
+# Pi 500 / Pi 5 D0 silicon: the kernel's pinctrl-brcmstb probes it with C0 compatibles and panics
+# (SError in brcmstb_pull_config_set), so it is blacklisted on the cmdline (raspi-extra-cmdline);
+# the Pi firmware has already muxed the pins. Drop once Debian's dtb carries the D0 compatibles.
+#
 # The image boots two ways from the same FAT partition: the Raspberry Pi firmware
 # (config.txt/kernel/initrd placed by the raspi-firmware package) and, for QEMU and
 # UEFI boards, GRUB at EFI/BOOT/BOOTAA64.EFI.
@@ -68,7 +72,7 @@ mmdebstrap --architecture=arm64 --variant=minbase \
     --components="main contrib non-free non-free-firmware" \
     --aptopt='APT::Install-Recommends "false"' \
     --dpkgopt='force-confold' \
-    --setup-hook='mkdir -p "$1/etc/default" "$1/boot/firmware"; printf "ROOTPART=LABEL=PEAR_ROOT\n" > "$1/etc/default/raspi-firmware"' \
+    --setup-hook='mkdir -p "$1/etc/default" "$1/boot/firmware"; printf "ROOTPART=LABEL=PEAR_ROOT\n" > "$1/etc/default/raspi-firmware"; printf "module_blacklist=pinctrl_brcmstb\n" > "$1/etc/default/raspi-extra-cmdline"' \
     --include="$PKGS" \
     --customize-hook="$HERE/customize-rootfs.sh \"\$1\"" \
     "$BRANCH" "$ROOTFS" "http://deb.debian.org/debian"
