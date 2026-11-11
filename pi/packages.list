@@ -43,7 +43,8 @@ git
 
 # --- boot: Raspberry Pi firmware path + UEFI fallback (QEMU / UEFI boards) ---
 linux-image-arm64
-raspi-firmware
+# raspi-firmware + the Raspberry Pi kernels (linux-image-rpi-2712 / -v8) come from archive.raspberrypi.com,
+# installed by customize-rootfs.sh; Debian's kernel above is for the GRUB/UEFI path (QEMU, UEFI boards).
 grub-efi-arm64-bin
 plymouth
 plymouth-themes

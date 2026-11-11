@@ -213,7 +213,7 @@ jobs:
             The first pearOS image for the Raspberry Pi 4 / 5 (Debian base, arm64) is available as a **public beta** (Raspberry Pi 4 / 5 / 500).
 
             **Release notes**
-            - Fixes the boot kernel panic ("Asynchronous SError Interrupt" in pinctrl_brcmstb) on the Raspberry Pi 500 and Pi 5 boards with D0 silicon, reported on r/pearos.
+            - Now boots the Raspberry Pi kernel (6.18) on the Pi 5 / Pi 500 and Pi 4: fixes the boot panic ("Asynchronous SError Interrupt" in pinctrl_brcmstb) on the Raspberry Pi 500 and Pi 5 boards with D0 silicon, reported on r/pearos.
             - Based on Debian forky, Plasma on Wayland, first-boot setup assistant, root partition grows to fill the card on first boot.
 
             **Download:** https://pearos.xyz/aarch64/

@@ -116,6 +116,57 @@ LABEL=PEAR_ROOT  /              ext4  defaults,noatime  0 1
 LABEL=PEAR_BOOT  /boot/firmware vfat  defaults          0 2
 EOF
 
+echo "--- Raspberry Pi kernels + firmware (archive.raspberrypi.com) ---"
+# Debian's mainline kernel cannot drive the D0 silicon of the Pi 500 (SError in pinctrl-brcmstb).
+# The Raspberry Pi kernels can: 2712 (16k pages) for Pi 5/500, v8 for Pi 4. Only these packages
+# come from that repo (pinned); everything else stays Debian. raspi-firmware there installs
+# kernel8.img / kernel_2712.img and initramfs8 / initramfs_2712 on the FAT partition per flavour,
+# and ignores Debian's own kernel (which remains for GRUB/UEFI).
+# apt in forky (Sequoia) rejects the Raspberry Pi archive key: its binding signature is SHA1. Allow SHA1
+# second-preimage signatures (the policy file overrides /usr/share/apt/default-sequoia.config); kept in the
+# image so `apt upgrade` can fetch kernel updates on the device.
+install -d "$R/etc/crypto-policies/back-ends"
+sed 's/^sha1.second_preimage_resistance = .*/sha1.second_preimage_resistance = 2030-01-01/' "$R/usr/share/apt/default-sequoia.config" > "$R/etc/crypto-policies/back-ends/apt-sequoia.config"
+in_chroot "curl -fsSL https://archive.raspberrypi.com/debian/raspberrypi.gpg.key -o /etc/apt/keyrings/raspberrypi-archive-keyring.asc"
+echo "deb [signed-by=/etc/apt/keyrings/raspberrypi-archive-keyring.asc] https://archive.raspberrypi.com/debian/ trixie main" > "$R/etc/apt/sources.list.d/raspi.list"
+install -d "$R/etc/apt/preferences.d"
+cat > "$R/etc/apt/preferences.d/raspi" <<'EOF'
+Package: *
+Pin: origin archive.raspberrypi.com
+Pin-Priority: 100
+
+Package: raspi-firmware linux-image-rpi-* linux-base-rpi-* linux-image-*+rpt-* linux-base-*+rpt-*
+Pin: origin archive.raspberrypi.com
+Pin-Priority: 1001
+EOF
+in_chroot "apt-get update"
+in_chroot "apt-get install -y --no-install-recommends raspi-firmware linux-image-rpi-2712 linux-image-rpi-v8"
+# This raspi-firmware does not write config.txt / cmdline.txt: ours (Pi OS style, KMS for Plasma).
+cat > "$R/boot/firmware/config.txt" <<'EOF'
+# pearOS Raspberry Pi
+arm_64bit=1
+auto_initramfs=1
+dtparam=audio=on
+camera_auto_detect=1
+display_auto_detect=1
+dtoverlay=vc4-kms-v3d
+max_framebuffers=2
+disable_fw_kms_setup=1
+disable_overscan=1
+arm_boost=1
+enable_uart=1
+
+[cm4]
+otg_mode=1
+
+[cm5]
+dtoverlay=dwc2,dr_mode=host
+
+[all]
+EOF
+echo "console=tty1 root=LABEL=PEAR_ROOT rootfstype=ext4 rw fsck.repair=yes net.ifnames=0 rootwait" > "$R/boot/firmware/cmdline.txt"
+ls -l "$R/boot/firmware" | head -40
+
 echo "--- initramfs with the final plymouth theme ---"
 in_chroot "update-initramfs -u -k all"
 

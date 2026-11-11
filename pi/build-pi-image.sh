@@ -15,9 +15,10 @@
 # 3. disk image: p1 FAT32 PEAR_BOOT (Pi firmware + kernel + EFI fallback) + p2 ext4 PEAR_ROOT
 # 4. xz -> pearOS-Goldwing-Beta-<version>-arm64.img.xz (target: under 2 GiB, GitHub's release-asset limit)
 #
-# Pi 500 / Pi 5 D0 silicon: the kernel's pinctrl-brcmstb probes it with C0 compatibles and panics
-# (SError in brcmstb_pull_config_set), so it is blacklisted on the cmdline (raspi-extra-cmdline);
-# the Pi firmware has already muxed the pins. Drop once Debian's dtb carries the D0 compatibles.
+# Kernels: the Pi firmware path boots the Raspberry Pi kernels (linux-image-rpi-2712 for Pi 5/500,
+# linux-image-rpi-v8 for Pi 4, from archive.raspberrypi.com, installed by customize-rootfs.sh). Mainline /
+# Debian's linux-image-arm64 has no pinctrl support for the D0 silicon of the Pi 500 (SError panic in
+# pinctrl-brcmstb), and blacklisting it breaks the SD card. Debian's kernel stays for the GRUB/UEFI path.
 #
 # The image boots two ways from the same FAT partition: the Raspberry Pi firmware
 # (config.txt/kernel/initrd placed by the raspi-firmware package) and, for QEMU and
@@ -72,7 +73,7 @@ mmdebstrap --architecture=arm64 --variant=minbase \
     --components="main contrib non-free non-free-firmware" \
     --aptopt='APT::Install-Recommends "false"' \
     --dpkgopt='force-confold' \
-    --setup-hook='mkdir -p "$1/etc/default" "$1/boot/firmware"; printf "ROOTPART=LABEL=PEAR_ROOT\n" > "$1/etc/default/raspi-firmware"; printf "module_blacklist=pinctrl_brcmstb\n" > "$1/etc/default/raspi-extra-cmdline"' \
+    --setup-hook='mkdir -p "$1/boot/firmware"' \
     --include="$PKGS" \
     --customize-hook="$HERE/customize-rootfs.sh \"\$1\"" \
     "$BRANCH" "$ROOTFS" "http://deb.debian.org/debian"
@@ -119,6 +120,15 @@ chroot "$MNT" /bin/bash -c '
 sync
 echo "root filesystem after the copy:"; df -h "$MNT" | tail -1; df -i "$MNT" | tail -1
 echo "firmware partition:"; ls "$MNT/boot/firmware" | head -30
+# The Pi firmware path must have what it needs, or the image will not boot on real hardware
+# (QEMU boots through GRUB with Debian's kernel and does not exercise any of this).
+for f in kernel8.img kernel_2712.img initramfs8 initramfs_2712 config.txt cmdline.txt start4.elf bcm2712-rpi-5-b.dtb bcm2712-rpi-500.dtb bcm2711-rpi-4-b.dtb; do
+    [ -s "$MNT/boot/firmware/$f" ] || { echo "ERROR: /boot/firmware/$f missing" >&2; exit 1; }
+done
+echo "pinctrl drivers of the 2712 kernel:"; find "$MNT"/lib/modules/*rpt-rpi-2712 -name 'pinctrl-*bcm*' | head
+echo "initramfs_2712 storage/USB modules:"
+( zstd -dc "$MNT/boot/firmware/initramfs_2712" 2>/dev/null || xz -dc "$MNT/boot/firmware/initramfs_2712" 2>/dev/null || gzip -dc "$MNT/boot/firmware/initramfs_2712" ) \
+    | cpio -t 2>/dev/null | grep -E 'sdhci|mmc_block|nvme|ext4|xhci|rp1' | head -20 || true
 for m in "$MNT/boot/firmware" "$MNT/dev/pts" "$MNT/dev" "$MNT/proc" "$MNT/sys" "$MNT"; do umount "$m"; done
 e2fsck -fy "${LOOP}p2" >/dev/null || true
 losetup -d "$LOOP"; LOOP=""
