@@ -105,23 +105,23 @@ A profile lives under `profiles/<name>/` and provides:
 ## Boot Status sequence 📌
 <!-- boot-seq:begin -->
 
-Result: **booted, installed pearOS and booted it ✅**  
+Result: **FAIL TEST ❌**  
 
-**Success score: 100/100**
+**Success score: 85/100**
 
 | Test | Score |
 |---|---|
 | Boot | 100/100 |
-| UI sanity | 100/100 |
+| UI sanity | 50/100 |
 | Installable | 100/100 |
-| Usability | 100/100 |
+| Usability | 90/100 |
 
 Usability checks:
 
 | Check | Result |
 |---|---|
 | login + desktop | ✅  |
-| UI sanity (installed) | ✅ top 99% / dock 100% |
+| UI sanity (installed) | ❌ top 88% / dock 100% |
 | Konsole opens | ✅  |
 | os-release says pearOS | ✅  |
 | sudo apt-get dist-upgrade | ✅  |
@@ -130,6 +130,11 @@ Usability checks:
 | Notes opens | ✅  |
 | Finder opens | ✅  |
 | Kate opens | ✅  |
+
+
+> **Why it failed:** The installed desktop looks different from the reference: menu bar 88.4%, dock 100.0% (each must be at least 90%).
+
+This ISO was **not published**; it was saved as a quarantined `FAIL_TEST` build.
 
 One screenshot every 10s.
 
@@ -142,57 +147,57 @@ One screenshot every 10s.
 7. `70s` — ![boot 7](seq/7.png)
 8. `80s` — ![boot 8](seq/8.png)
 9. `90s` — ![boot 9](seq/9.png)
-10. `100s` — ![boot 10](seq/10.png)
-11. `110s` — desktop ready, then clicked **Install pearOS** in Welcome — ![boot 11](seq/11.png)
+10. `100s` — desktop ready, then clicked **Install pearOS** in Welcome — ![boot 10](seq/10.png)
+11. `110s` — pearOS installer loading — ![boot 11](seq/11.png)
 12. `120s` — pearOS installer loading — ![boot 12](seq/12.png)
-13. `130s` — pearOS installer loading — ![boot 13](seq/13.png)
-14. `140s` — Language screen, then selected English — ![boot 14](seq/14.png)
-15. `150s` — Language screen, then clicked Next — ![boot 15](seq/15.png)
-16. `160s` — Recovery screen, then selected **Install pearOS Goldwing** — ![boot 16](seq/16.png)
-17. `170s` — Recovery screen, then clicked **Continue** — ![boot 17](seq/17.png)
-18. `180s` — Installer welcome, then clicked **Continue** — ![boot 18](seq/18.png)
-19. `190s` — Terms and Conditions, then clicked **Continue** — ![boot 19](seq/19.png)
+13. `130s` — Language screen, then selected English — ![boot 13](seq/13.png)
+14. `140s` — Language screen, then clicked Next — ![boot 14](seq/14.png)
+15. `150s` — Recovery screen, then selected **Install pearOS Goldwing** — ![boot 15](seq/15.png)
+16. `160s` — Recovery screen, then clicked **Continue** — ![boot 16](seq/16.png)
+17. `170s` — Installer welcome, then clicked **Continue** — ![boot 17](seq/17.png)
+18. `180s` — Terms and Conditions, then clicked **Continue** — ![boot 18](seq/18.png)
+19. `190s` — ![boot 19](seq/19.png)
 20. `200s` — ![boot 20](seq/20.png)
 21. `210s` — ![boot 21](seq/21.png)
 22. `220s` — ![boot 22](seq/22.png)
 23. `230s` — ![boot 23](seq/23.png)
 24. `240s` — ![boot 24](seq/24.png)
 25. `250s` — ![boot 25](seq/25.png)
-26. `260s` — ![boot 26](seq/26.png)
-27. `270s` — Calamares — ![boot 27](seq/27.png)
-28. `280s` — Calamares: Welcome, clicked Next — ![boot 28](seq/28.png)
-29. `290s` — Calamares: Location, clicked Next — ![boot 29](seq/29.png)
-30. `300s` — Calamares: Keyboard, clicked Next — ![boot 30](seq/30.png)
-31. `310s` — Calamares: Partitions, selected Erase disk — ![boot 31](seq/31.png)
-32. `320s` — Calamares: Partitions, clicked Next — ![boot 32](seq/32.png)
-33. `330s` — Calamares: Summary, clicked Install — ![boot 33](seq/33.png)
-34. `340s` — Calamares: installing (2 min) — ![boot 34](seq/34.png)
-35. `350s` — Calamares: installing (4 min) — ![boot 35](seq/35.png)
-36. `360s` — Calamares: installation finished — ![boot 36](seq/36.png)
+26. `260s` — Calamares — ![boot 26](seq/26.png)
+27. `270s` — Calamares: Welcome, clicked Next — ![boot 27](seq/27.png)
+28. `280s` — Calamares: Location, clicked Next — ![boot 28](seq/28.png)
+29. `290s` — Calamares: Keyboard, clicked Next — ![boot 29](seq/29.png)
+30. `300s` — Calamares: Partitions, selected Erase disk — ![boot 30](seq/30.png)
+31. `310s` — Calamares: Partitions, clicked Next — ![boot 31](seq/31.png)
+32. `320s` — Calamares: Summary, clicked Install — ![boot 32](seq/32.png)
+33. `330s` — Calamares: installing (2 min) — ![boot 33](seq/33.png)
+34. `340s` — Calamares: installation finished — ![boot 34](seq/34.png)
+35. `350s` — Installed system: first boot — ![boot 35](seq/35.png)
+36. `360s` — Installed system: first boot — ![boot 36](seq/36.png)
 37. `370s` — Installed system: first boot — ![boot 37](seq/37.png)
 38. `380s` — Installed system: first boot — ![boot 38](seq/38.png)
 39. `390s` — Installed system: first boot — ![boot 39](seq/39.png)
-40. `400s` — Installed system: first boot — ![boot 40](seq/40.png)
-41. `410s` — Installed system: first boot — ![boot 41](seq/41.png)
-42. `420s` — Installed system: reached the login screen / desktop — ![boot 42](seq/42.png)
-43. `430s` — First boot: country — ![boot 43](seq/43.png)
-44. `440s` — First boot: transfer — ![boot 44](seq/44.png)
-45. `450s` — First boot: languages — ![boot 45](seq/45.png)
-46. `460s` — First boot: accessibility — ![boot 46](seq/46.png)
-47. `470s` — First boot: data & privacy — ![boot 47](seq/47.png)
-48. `480s` — First boot: PearID — ![boot 48](seq/48.png)
-49. `490s` — First boot: create account — ![boot 49](seq/49.png)
-50. `500s` — First boot: account filled in — ![boot 50](seq/50.png)
-51. `510s` — First boot: terms — ![boot 51](seq/51.png)
-52. `520s` — First boot: location services — ![boot 52](seq/52.png)
-53. `530s` — First boot: time zone — ![boot 53](seq/53.png)
-54. `540s` — First boot: analytics — ![boot 54](seq/54.png)
-55. `550s` — First boot: screen time — ![boot 55](seq/55.png)
-56. `560s` — First boot: Piri — ![boot 56](seq/56.png)
-57. `570s` — First boot: look — ![boot 57](seq/57.png)
-58. `580s` — First boot: updates — ![boot 58](seq/58.png)
-59. `590s` — First boot: ready — ![boot 59](seq/59.png)
-60. `600s` — First boot: applying settings — ![boot 60](seq/60.png)
+40. `400s` — Installed system: reached the login screen / desktop — ![boot 40](seq/40.png)
+41. `410s` — First boot: country — ![boot 41](seq/41.png)
+42. `420s` — First boot: transfer — ![boot 42](seq/42.png)
+43. `430s` — First boot: languages — ![boot 43](seq/43.png)
+44. `440s` — First boot: accessibility — ![boot 44](seq/44.png)
+45. `450s` — First boot: data & privacy — ![boot 45](seq/45.png)
+46. `460s` — First boot: PearID — ![boot 46](seq/46.png)
+47. `470s` — First boot: create account — ![boot 47](seq/47.png)
+48. `480s` — First boot: account filled in — ![boot 48](seq/48.png)
+49. `490s` — First boot: terms — ![boot 49](seq/49.png)
+50. `500s` — First boot: location services — ![boot 50](seq/50.png)
+51. `510s` — First boot: time zone — ![boot 51](seq/51.png)
+52. `520s` — First boot: analytics — ![boot 52](seq/52.png)
+53. `530s` — First boot: screen time — ![boot 53](seq/53.png)
+54. `540s` — First boot: Piri — ![boot 54](seq/54.png)
+55. `550s` — First boot: look — ![boot 55](seq/55.png)
+56. `560s` — First boot: updates — ![boot 56](seq/56.png)
+57. `570s` — First boot: ready — ![boot 57](seq/57.png)
+58. `580s` — First boot: applying settings — ![boot 58](seq/58.png)
+59. `590s` — Login screen — ![boot 59](seq/59.png)
+60. `600s` — Login screen — ![boot 60](seq/60.png)
 61. `610s` — Login screen — ![boot 61](seq/61.png)
 62. `620s` — Login screen — ![boot 62](seq/62.png)
 63. `630s` — Login screen — ![boot 63](seq/63.png)
@@ -208,15 +213,16 @@ One screenshot every 10s.
 73. `730s` — Logging in — ![boot 73](seq/73.png)
 74. `740s` — Logging in — ![boot 74](seq/74.png)
 75. `750s` — Logging in — ![boot 75](seq/75.png)
-76. `760s` — Installed system: desktop — ![boot 76](seq/76.png)
-77. `770s` — Konsole opened — ![boot 77](seq/77.png)
-78. `780s` — Konsole: cat /etc/os-release — ![boot 78](seq/78.png)
-79. `790s` — Konsole: apt-get dist-upgrade succeeded — ![boot 79](seq/79.png)
-80. `800s` — App: Pafari opened — ![boot 80](seq/80.png)
-81. `810s` — App: Calculator opened — ![boot 81](seq/81.png)
-82. `820s` — App: Notes opened — ![boot 82](seq/82.png)
-83. `830s` — App: Finder opened — ![boot 83](seq/83.png)
-84. `840s` — App: Kate opened — ![boot 84](seq/84.png)
+76. `760s` — Logging in — ![boot 76](seq/76.png)
+77. `770s` — Installed system: desktop — ![boot 77](seq/77.png)
+78. `780s` — Konsole opened — ![boot 78](seq/78.png)
+79. `790s` — Konsole: cat /etc/os-release — ![boot 79](seq/79.png)
+80. `800s` — Konsole: apt-get dist-upgrade succeeded — ![boot 80](seq/80.png)
+81. `810s` — App: Pafari opened — ![boot 81](seq/81.png)
+82. `820s` — App: Calculator opened — ![boot 82](seq/82.png)
+83. `830s` — App: Notes opened — ![boot 83](seq/83.png)
+84. `840s` — App: Finder opened — ![boot 84](seq/84.png)
+85. `850s` — App: Kate opened — ![boot 85](seq/85.png)
 
 <!-- boot-seq:end -->
 
@@ -228,10 +234,10 @@ Compared against the reference `tests/ui-reference/debian/desktop.png` (% of pix
 
 | Area | Similarity |
 |---|---|
-| Top bar (first 30 px) | 96.8% |
+| Top bar (first 30 px) | 94.7% |
 | Dock (last 100 px) | 100.0% |
 
-Current frame: ![desktop](seq/11.png)
+Current frame: ![desktop](seq/10.png)
 
 <!-- ui-sanity:end -->
 
