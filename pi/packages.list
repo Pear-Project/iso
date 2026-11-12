@@ -51,6 +51,8 @@ plymouth-themes
 
 # --- hardware: Wi-Fi/Bluetooth of the Pi 4/5, GPU (v3d/vc4 via Mesa), audio ---
 firmware-brcm80211
+wireless-regdb
+iw
 bluez
 bluez-firmware
 rfkill
