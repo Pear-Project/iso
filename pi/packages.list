@@ -67,6 +67,7 @@ mesa-vulkan-drivers
 
 # --- desktop (Plasma / Wayland, as on the amd64 build) ---
 network-manager
+wpasupplicant
 sddm
 plasma-desktop
 plasma-workspace
