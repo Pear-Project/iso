@@ -154,15 +154,16 @@ Package: *
 Pin: origin archive.raspberrypi.com
 Pin-Priority: 100
 
-Package: raspi-firmware linux-image-rpi-* linux-base-rpi-* linux-image-*+rpt-* linux-base-*+rpt-* firmware-brcm80211 bluez-firmware raspi-utils-core libgpiolib0
+Package: raspi-firmware linux-image-rpi-* linux-base-rpi-* linux-image-*+rpt-* linux-base-*+rpt-* bluez-firmware raspi-utils-core libgpiolib0
 Pin: origin archive.raspberrypi.com
 Pin-Priority: 1001
 EOF
 in_chroot "apt-get update"
-# firmware-brcm80211 / bluez-firmware from the Pi repo carry the per-board files (brcmfmac43455-sdio.raspberrypi,5-model-b.*,
-# BCM4345C0.raspberrypi,5-model-b.hcd) that Debian's packages lack; raspi-utils-core gives vcgencmd.
-# wireless-regdb: without regulatory.db the 5 GHz channels stay passive-only (no networks found).
-in_chroot "apt-get install -y --no-install-recommends raspi-firmware linux-image-rpi-2712 linux-image-rpi-v8 firmware-brcm80211 bluez-firmware raspi-utils-core wireless-regdb iw"
+# bluez-firmware from the Pi repo carries the per-board BCM4345C0.raspberrypi,*.hcd files Debian lacks.
+# firmware-brcm80211 stays Debian's: the Pi repo's copy references cypress/cyfmac43455-sdio.bin without
+# shipping it (dangling symlinks, no Wi-Fi), while Debian's has the .bin/.clm_blob and the Pi 5 / 500 .txt.
+# raspi-utils-core gives vcgencmd. wireless-regdb: without regulatory.db 5 GHz stays passive-only.
+in_chroot "apt-get install -y --no-install-recommends raspi-firmware linux-image-rpi-2712 linux-image-rpi-v8 bluez-firmware raspi-utils-core wireless-regdb iw"
 # This raspi-firmware does not write config.txt / cmdline.txt: ours (Pi OS style, KMS for Plasma).
 cat > "$R/boot/firmware/config.txt" <<'EOF'
 # pearOS Raspberry Pi

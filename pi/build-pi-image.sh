@@ -125,7 +125,7 @@ echo "firmware partition:"; ls "$MNT/boot/firmware" | head -30
 for f in kernel8.img kernel_2712.img initramfs8 initramfs_2712 config.txt cmdline.txt start4.elf bcm2712-rpi-5-b.dtb bcm2712-rpi-500.dtb bcm2711-rpi-4-b.dtb; do
     [ -s "$MNT/boot/firmware/$f" ] || { echo "ERROR: /boot/firmware/$f missing" >&2; exit 1; }
 done
-for f in lib/firmware/brcm/brcmfmac43455-sdio.raspberrypi,5-model-b.bin lib/firmware/brcm/BCM4345C0.raspberrypi,5-model-b.hcd lib/firmware/regulatory.db-debian usr/bin/vcgencmd usr/local/sbin/pearos-fix-autologin; do
+for f in lib/firmware/brcm/brcmfmac43455-sdio.bin lib/firmware/brcm/brcmfmac43455-sdio.clm_blob lib/firmware/brcm/brcmfmac43455-sdio.raspberrypi,5-model-b.txt lib/firmware/brcm/brcmfmac43455-sdio.raspberrypi,500.txt lib/firmware/brcm/BCM4345C0.raspberrypi,5-model-b.hcd lib/firmware/regulatory.db-debian usr/bin/vcgencmd usr/local/sbin/pearos-fix-autologin; do
     [ -e "$MNT/$f" ] || { echo "ERROR: /$f missing (Wi-Fi/Bluetooth/regdb/autologin)" >&2; exit 1; }
 done
 echo "pinctrl drivers of the 2712 kernel:"; find "$MNT"/lib/modules/*rpt-rpi-2712 -name 'pinctrl-*bcm*' | head
