@@ -63,25 +63,6 @@ install -d "$R/etc/sddm.conf.d"
 printf '[Autologin]\nUser=default\nSession=plasma\n' > "$R/etc/sddm.conf.d/autologin.conf"
 printf '[Theme]\nCurrent=pearOS-dark\n' > "$R/etc/sddm.conf.d/theme.conf"
 
-# The setup assistant renames/removes the temporary account but only cleans /etc/sddm.conf, not this drop-in:
-# SDDM would keep trying to autologin the account that no longer exists. Before every SDDM start, if the
-# autologin user is gone, point it at the real account (first regular user), or drop the autologin.
-install -Dm755 /dev/stdin "$R/usr/local/sbin/pearos-fix-autologin" <<'EOF'
-#!/bin/sh
-conf=/etc/sddm.conf.d/autologin.conf
-[ -f "$conf" ] || exit 0
-u=$(sed -n 's/^User=//p' "$conf" | head -n1)
-if [ -n "$u" ] && id "$u" >/dev/null 2>&1; then exit 0; fi
-real=$(awk -F: '$3>=1000 && $3<60000 {print $1; exit}' /etc/passwd)
-if [ -n "$real" ]; then
-    printf '[Autologin]\nUser=%s\nSession=plasma\n' "$real" > "$conf"
-else
-    rm -f "$conf"
-fi
-EOF
-install -d "$R/etc/systemd/system/sddm.service.d"
-printf '[Service]\nExecStartPre=/usr/local/sbin/pearos-fix-autologin\n' > "$R/etc/systemd/system/sddm.service.d/pearos-autologin.conf"
-
 echo "--- branding / desktop tweaks shared with the amd64 profile ---"
 install -d "$R/etc/environment.d"
 printf 'GDK_DEBUG=no-portals\n' > "$R/etc/environment.d/90-pearos-gtk-portal-fix.conf"
