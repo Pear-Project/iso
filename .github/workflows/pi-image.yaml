@@ -105,7 +105,7 @@ jobs:
       # Only web-sized copies are committed (the full PNG set is in the pi-boot-sequence artifact),
       # and nothing here publishes the image itself: no R2 upload, no announcement.
       - name: Publish the test sequence (screenshots + result, not the image)
-        if: always() && inputs.boot_test && hashFiles('seq/result.json') != ''
+        if: always() && inputs.boot_test && steps.boottest.outcome != 'skipped' && hashFiles('seq/result.json') != ''
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
